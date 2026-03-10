@@ -253,6 +253,27 @@ font-size:12px;font-weight:900;transition:all .15s;}
 .worker-row-yomi{font-size:11px;color:var(–t2);}
 .worker-row-tel{font-size:11px;color:var(–t2);margin-left:auto;}
 
+/* MEETING INSTRUCTION */
+.mi-worker-list{display:flex;flex-direction:column;gap:6px;margin-bottom:10px;}
+.mi-worker-row{display:flex;align-items:center;gap:9px;
+background:var(–s2);border:1px solid var(–border);
+border-radius:9px;padding:9px 12px;cursor:pointer;
+transition:all .15s;user-select:none;}
+.mi-worker-row.on{background:rgba(240,180,41,.1);border-color:rgba(240,180,41,.4);}
+.mi-cb{display:none;}
+.mi-box{width:20px;height:20px;border:2px solid var(–border);border-radius:5px;
+background:var(–s3);flex-shrink:0;display:flex;align-items:center;justify-content:center;
+font-size:12px;font-weight:900;transition:all .15s;}
+.mi-worker-row.on .mi-box{background:var(–a);border-color:var(–a);color:#1a1c24;}
+.mi-name{font-size:14px;font-weight:600;color:var(–t1);}
+.mi-mode-btns{display:flex;gap:7px;margin-bottom:10px;}
+.mi-mode-btn{flex:1;padding:9px;border:1px solid var(–border);border-radius:9px;
+background:var(–s2);color:var(–t2);font-size:13px;font-weight:600;
+font-family:inherit;cursor:pointer;transition:all .15s;text-align:center;}
+.mi-mode-btn.on{background:rgba(240,180,41,.12);border-color:rgba(240,180,41,.5);color:var(–a);}
+.mi-detail{display:none;}
+.mi-detail.on{display:block;}
+
 .toast{position:fixed;bottom:18px;left:50%;
 transform:translateX(-50%) translateY(14px);
 background:var(–green);color:#052e16;padding:8px 16px;
@@ -311,7 +332,28 @@ opacity:0;transition:all .25s;z-index:400;white-space:nowrap;pointer-events:none
     <input type="time" class="inp" id="f-time" value="07:50">
   </div>
 </div>
+
+
+<!-- 作業員選択 -->
 <div class="fg">
+  <label class="lbl">作業員 <span class="w-count" id="worker-count" style="display:none;margin-left:4px;"></span></label>
+  <div class="chips" id="worker-chips" style="margin-bottom:6px;min-height:0;"></div>
+  <div class="wsearch-wrap" style="margin-bottom:6px;">
+    <span class="wsearch-icon">🔍</span>
+    <input class="wsearch-inp" id="worker-search" placeholder=""
+      oninput="workerSearchInput(this)" onfocus="workerSearchInput(this)"
+      autocomplete="off">
+    <div class="wsearch-dropdown" id="worker-dropdown"></div>
+  </div>
+  <select class="sel" id="worker-sel" style="display:none;"></select>
+  <div style="display:flex;gap:7px;margin-top:6px;">
+    <input class="inp" id="worker-tmp" placeholder="その他（臨時）" style="flex:1;">
+    <button class="bsm bsm-g" onclick="addWorkerTmp()" style="height:42px;white-space:nowrap;flex-shrink:0;">追加</button>
+  </div>
+</div>
+
+<!-- 集合場所 -->
+<div class="fg" style="margin-top:4px;">
   <label class="lbl">集合場所</label>
   <div class="suggest-wrap">
     <span class="wsearch-icon">🔍</span>
@@ -319,6 +361,12 @@ opacity:0;transition:all .25s;z-index:400;white-space:nowrap;pointer-events:none
       oninput="suggestMeet(this)" onfocus="suggestMeet(this)" autocomplete="off">
     <div class="suggest-list" id="sg-f-meet" style="display:none;"></div>
   </div>
+</div>
+
+<!-- 集合メンバーチェックリスト（作業員追加後に表示） -->
+<div class="fg" id="mi-member-section" style="display:none;">
+  <label class="lbl">集合メンバー</label>
+  <div class="mi-worker-list" id="mi-worker-list"></div>
 </div>
 <div class="fg"><label class="lbl">ゼネコン（任意）</label>
   <input class="inp" id="f-gen" placeholder="">
@@ -361,27 +409,6 @@ opacity:0;transition:all .25s;z-index:400;white-space:nowrap;pointer-events:none
         <input type="tel" class="inp" id="f-ctel" placeholder="">
       </div>
     </div>
-  </div>
-
-  <div class="card">
-    <div class="sec">
-      作業員
-      <span class="w-count" id="worker-count" style="display:none;"></span>
-    </div>
-    <div class="chips" id="worker-chips"></div>
-    <!-- 検索追加 -->
-    <div class="wsearch-wrap" style="margin-bottom:8px;">
-      <span class="wsearch-icon">🔍</span>
-      <input class="wsearch-inp" id="worker-search" placeholder=""
-        oninput="workerSearchInput(this)" onfocus="workerSearchInput(this)"
-        autocomplete="off">
-      <div class="wsearch-dropdown" id="worker-dropdown"></div>
-    </div>
-    <!-- セレクトでも追加できる -->
-    <select class="sel" id="worker-sel" onchange="addWorker(this.value)" style="margin-bottom:8px;">
-      <option value="">リストから選んで追加</option>
-    </select>
-
   </div>
 
   <div class="card">
@@ -838,6 +865,7 @@ function renderWorkerChips(){
   }else{
     badge.style.display='none';
   }
+  renderMiWorkerList();
 }
 
 // ピル構築
@@ -886,13 +914,14 @@ function collectForm(){
     addr:   document.getElementById('f-addr').value.trim(),
     date:   dateV, dateStr,
     time:   document.getElementById('f-time').value,
+    meetTime: document.getElementById('f-meet-time')?.value||'',
     meet:   document.getElementById('f-meet').value.trim(),
     gen:    document.getElementById('f-gen').value.trim(),
     cname:  document.getElementById('f-cname').value.trim(),
     ctel:   document.getElementById('f-ctel').value.trim(),
     note:   document.getElementById('f-note').value.trim(),
     clientId, clientName, car, works,
-    workerIds:[selW], workerNames:[wNames],
+    workerIds:[...selW], workerNames:[...wNames],
   };
 }
 
@@ -900,24 +929,42 @@ function collectForm(){
 function generate(){
   const f=collectForm();
   const site=f.site||'（現場名未入力）';
+  const eqs = collectEquipment();
   let txt='';
-  if(f.meet&&f.car) txt+=`＊${f.meet}に${f.time}までにきて、${f.car}で現場に行ってください。\n`;
-  if(f.cname)       txt+=`＊現場に着いたら、担当の${f.cname}さんに連絡してください。\n`;
-  if(f.note)        txt+=`\n${f.note}\n`;
-  txt+=`\n作業日時${f.dateStr} ${f.time}〜\n`;
+  // 集合場所指示
+  const meetPlace = document.getElementById('f-meet')?.value.trim() || '';
+  const miChecked = getMiCheckedMembers();
+  const miDirect = getMiDirectMembers();
+  if(miDirect.length){
+    txt+=`＊${miDirect.join('・')}は直接現場に行ってください。\n`;
+  }
+  if(meetPlace && miChecked.length){
+    const memberTxt = miChecked.join('・')+'は';
+    txt+=`＊${memberTxt}${meetPlace}に${f.time}までに来て${f.car?`、${f.car}で現場に行ってください`:'ください'}。\n`;
+  } else if(meetPlace){
+    txt+=`＊${meetPlace}に${f.time}までにきて${f.car?`、${f.car}で現場に行ってください`:'ください'}。\n`;
+  }
+  // 担当者への連絡
+  if(f.cname) txt+=`＊現場に着いたら、担当の${f.cname}さんに連絡してください。\n`;
+  // 資機材
+  if(eqs.length) txt+=`＊${eqs.map(e=>e.unit?`${e.name} ${e.num}${e.unit}`:e.name).join('・')}を持参してください。\n`;
+  // 備考
+  if(f.note) txt+=`\n${f.note}\n`;
+  // 詳細情報
+  txt+=`\n作業日時...${f.dateStr} ${f.time}〜\n`;
   txt+=`現場名...${site}\n`;
   if(f.addr){
     const mapUrl='https://maps.google.com/maps?q='+encodeURIComponent(f.addr);
     txt+=`現場住所...${f.addr}\n${mapUrl}\n`;
   }
-  if(f.gen)         txt+=`ゼネコン...${f.gen}\n`;
-  if(f.clientName)  txt+=`お客様...${f.clientName}\n`;
-  if(f.cname)       txt+=`ご担当...${f.cname}さん\n`;
-  if(f.ctel)        txt+=`${f.ctel}\n`;
-  if(f.workerNames.length) txt+=`\n作業人員計${f.workerNames.length}名 ${f.workerNames.join('・')}\n`;
-  if(f.works.length)       txt+=`\n内容...${f.works.join('・')}\n`;
-  const eqs = collectEquipment();
-  if(eqs.length) txt+=`\n資機材...${eqs.map(e=>e.unit?`${e.name} ${e.num}${e.unit}`:e.name).join('・')}\n`;
+  if(f.gen)        txt+=`ゼネコン...${f.gen}\n`;
+  if(f.clientName) txt+=`お客様...${f.clientName}\n`;
+  if(f.cname)      txt+=`ご担当...${f.cname}さん\n`;
+  if(f.ctel)       txt+=`${f.ctel}\n`;
+  // 作業人員（人数＋名前）
+  const wCount = f.workerNames.length;
+  if(wCount) txt+=`\n作業人員...計${wCount}名 ${f.workerNames.join('・')}\n`;
+  if(f.works.length) txt+=`\n内容...${f.works.join('・')}\n`;
   document.getElementById('preview-text').textContent=txt.trim();
   document.getElementById('modal-line').classList.add('on');
 }
@@ -1717,6 +1764,64 @@ function collectEquipment(){
   return result;
 }
 
+
+// ════════ 集合メンバー ════════
+// 各作業員の状態: 'meet'=集合場所あり / 'direct'=直接現場
+const miStatus = {}; // {workerId: 'meet'|'direct'}
+
+function renderMiWorkerList(){
+  const cont = document.getElementById('mi-worker-list');
+  const section = document.getElementById('mi-member-section');
+  if(!cont) return;
+  // 作業員がいなければセクション非表示
+  if(selW.length===0){ if(section) section.style.display='none'; return; }
+  if(section) section.style.display='block';
+  cont.innerHTML='';
+  selW.forEach(id=>{
+    const w = S.workers.find(x=>x.id===id);
+    const name = w ? w.name : id;
+    // デフォルトは集合場所あり
+    if(!miStatus[id]) miStatus[id]='meet';
+    const isMeet = miStatus[id]==='meet';
+    const row = document.createElement('div');
+    row.className = 'mi-worker-row' + (isMeet?' on':'');
+    row.id = 'mirow-'+id;
+    row.style.cssText = isMeet ? '' : 'border-color:var(--a2);background:rgba(96,200,245,.08);';
+    row.innerHTML=`
+      <div class="mi-box" style="${isMeet?'':'background:var(--a2);border-color:var(--a2);color:#1a1c24;'}">${isMeet?'✓':'📍'}</div>
+      <span class="mi-name">${name}</span>
+      <span style="font-size:11px;color:${isMeet?'var(--t2)':'var(--a2)'};margin-left:auto;">${isMeet?'集合場所へ':'直接現場へ'}</span>`;
+    row.onclick=()=>{
+      miStatus[id] = miStatus[id]==='meet' ? 'direct' : 'meet';
+      renderMiWorkerList();
+    };
+    cont.appendChild(row);
+  });
+}
+
+function getMiCheckedMembers(){
+  return selW.filter(id=>miStatus[id]!=='direct')
+    .map(id=>{ const w=S.workers.find(x=>x.id===id); return w?w.name:id; });
+}
+function getMiDirectMembers(){
+  return selW.filter(id=>miStatus[id]==='direct')
+    .map(id=>{ const w=S.workers.find(x=>x.id===id); return w?w.name:id; });
+}
+function toggleDirectMode(btn){ /* 使用しない */ }
+
+// ════════ 臨時作業員追加 ════════
+function addWorkerTmp(){
+  const name = document.getElementById('worker-tmp').value.trim();
+  if(!name) return;
+  const existing = S.workers.find(w=>w.name===name);
+  if(existing){ addWorker(existing.id); }
+  else {
+    const tmpId = 'tmp_'+Date.now();
+    S.workers.push({id:tmpId, name, yomi:'', tel:'', _tmp:true});
+    addWorker(tmpId);
+  }
+  document.getElementById('worker-tmp').value='';
+}
 // ── INIT ──
 initClientSel(); initWorkerSel();
 buildCarPills(); buildWorkPills(); buildMeetTemplates(); buildSiteTemplates();
