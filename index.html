@@ -8,10 +8,10 @@
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;500;700;900&family=IBM+Plex+Mono:wght@400;600&display=swap" rel="stylesheet">
 <style>
 :root{
-  --bg:#0d0f14;--s1:#141720;--s2:#1c2030;--s3:#242840;
-  --border:#2a2f42;--a:#f0b429;--a2:#38bdf8;
+  --bg:#1a1c24;--s1:#22253a;--s2:#2a2e42;--s3:#32374e;
+  --border:#3a3f5c;--a:#f0b429;--a2:#60c8f5;
   --green:#34d399;--red:#f87171;--purple:#a78bfa;
-  --t1:#eef0f6;--t2:#7c86a0;--t3:#3d4460;
+  --t1:#f0f2fa;--t2:#8892b0;--t3:#4a5278;
 }
 *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 body{background:var(--bg);color:var(--t1);font-family:'Noto Sans JP',sans-serif;
@@ -41,7 +41,7 @@ border-bottom:2px solid transparent;transition:all .2s;white-space:nowrap}
 @keyframes fadeUp{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:translateY(0)}}
 
 /* CARDS */
-.card{background:var(–s1);border:1px solid var(–border);border-radius:13px;padding:13px;margin-bottom:9px}
+.card{background:var(–s1);border:1px solid var(–border);border-radius:13px;padding:13px;margin-bottom:9px;box-shadow:0 2px 12px rgba(0,0,0,.25)}
 .sec{font-size:10px;font-weight:700;color:var(–a);letter-spacing:2px;
 text-transform:uppercase;margin-bottom:9px;display:flex;align-items:center;gap:5px}
 .sec::before{content:’’;width:3px;height:10px;background:var(–a);border-radius:2px}
@@ -49,7 +49,7 @@ text-transform:uppercase;margin-bottom:9px;display:flex;align-items:center;gap:5
 /* FORM */
 .fg{margin-bottom:11px}.fg:last-child{margin-bottom:0}
 .lbl{display:block;font-size:10px;color:var(–t2);font-weight:600;letter-spacing:.5px;margin-bottom:4px}
-.inp,.sel,.ta{width:100%;background:var(–bg);border:1px solid var(–border);
+.inp,.sel,.ta{width:100%;background:var(–s2);border:1px solid var(–border);
 border-radius:8px;padding:10px 12px;color:var(–t1);font-size:15px;
 font-family:inherit;outline:none;transition:border-color .15s;-webkit-appearance:none}
 .inp:focus,.sel:focus,.ta:focus{border-color:var(–a)}
@@ -70,9 +70,9 @@ cursor:pointer;margin-top:5px;width:100%;font-family:inherit;transition:opacity 
 /* PILLS */
 .pills{display:flex;flex-wrap:wrap;gap:6px}
 .pi{display:none}
-.pl{display:inline-block;padding:6px 12px;background:var(–bg);border:1px solid var(–border);
-border-radius:20px;font-size:13px;color:var(–t2);cursor:pointer;transition:all .15s;user-select:none}
-.pi:checked+.pl{background:var(–a);border-color:var(–a);color:#0d0f14;font-weight:700}
+.pl{display:inline-block;padding:6px 12px;background:var(–s2);border:1px solid var(–border);
+border-radius:20px;font-size:13px;color:var(–t1);cursor:pointer;transition:all .15s;user-select:none}
+.pi:checked+.pl{background:var(–a);border-color:var(–a);color:#1a1c24;font-weight:700}
 
 /* CHIPS */
 .chips{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px;min-height:4px}
@@ -198,7 +198,7 @@ border-bottom:1px solid var(–border);transition:background .1s}
 
 /* WORKER SEARCH */
 .wsearch-wrap{position:relative}
-.wsearch-inp{width:100%;background:var(–bg);border:1px solid var(–border);
+.wsearch-inp{width:100%;background:var(–s2);border:1px solid var(–border);
 border-radius:8px;padding:10px 12px 10px 36px;color:var(–t1);font-size:15px;
 font-family:inherit;outline:none;transition:border-color .15s}
 .wsearch-inp:focus{border-color:var(–a)}
@@ -325,7 +325,7 @@ opacity:0;transition:all .25s;z-index:400;white-space:nowrap;pointer-events:none
     <!-- 検索追加 -->
     <div class="wsearch-wrap" style="margin-bottom:8px;">
       <span class="wsearch-icon">🔍</span>
-      <input class="wsearch-inp" id="worker-search" placeholder="名前で検索して追加..."
+      <input class="wsearch-inp" id="worker-search" placeholder="名前で検索して追加"
         oninput="workerSearchInput(this)" onfocus="workerSearchInput(this)"
         autocomplete="off">
       <div class="wsearch-dropdown" id="worker-dropdown"></div>
@@ -626,8 +626,8 @@ const DEFAULTS = {
   history:[],
   nextId:10, nextWid:3
 };
-let S = {...DEFAULTS};
-try{const sv=localStorage.getItem('yuinavi4');if(sv)S={...DEFAULTS,...JSON.parse(sv)};}catch(e){}
+let S = {DEFAULTS};
+try{const sv=localStorage.getItem('yuinavi4');if(sv)S={DEFAULTS,JSON.parse(sv)};}catch(e){}
 function persist(){try{localStorage.setItem('yuinavi4',JSON.stringify(S));}catch(e){}}
 
 function toast(msg,color){
@@ -818,7 +818,7 @@ function collectForm(){
     ctel:   document.getElementById('f-ctel').value.trim(),
     note:   document.getElementById('f-note').value.trim(),
     clientId, clientName, car, works,
-    workerIds:[...selW], workerNames:[...wNames],
+    workerIds:[selW], workerNames:[wNames],
   };
 }
 
@@ -830,7 +830,7 @@ function generate(){
   if(f.meet&&f.car) txt+=`＊${f.meet}に${f.time}までにきて、${f.car}で現場に行ってください。\n`;
   if(f.cname)       txt+=`＊現場に着いたら、担当の${f.cname}さんに連絡してください。\n`;
   if(f.note)        txt+=`\n${f.note}\n`;
-  txt+=`\n作業日時...${f.dateStr} ${f.time}〜\n`;
+  txt+=`\n作業日時${f.dateStr} ${f.time}〜\n`;
   txt+=`現場名...${site}\n`;
   if(f.addr){
     const mapUrl='https://maps.google.com/maps?q='+encodeURIComponent(f.addr);
@@ -840,8 +840,8 @@ function generate(){
   if(f.clientName)  txt+=`お客様...${f.clientName}\n`;
   if(f.cname)       txt+=`ご担当...${f.cname}さん\n`;
   if(f.ctel)        txt+=`${f.ctel}\n`;
-  if(f.workerNames.length) txt+=`\n作業人員...計${f.workerNames.length}名 ${f.workerNames.join('・')}\n`;
-  if(f.works.length)       txt+=`\n内容...${f.works.join('・')}\n`;
+  if(f.workerNames.length) txt+=`\n作業人員計${f.workerNames.length}名 ${f.workerNames.join('・')}\n`;
+  if(f.works.length)       txt+=`\n内容${f.works.join('・')}\n`;
   document.getElementById('preview-text').textContent=txt.trim();
   document.getElementById('modal-line').classList.add('on');
 }
@@ -1048,7 +1048,7 @@ function saveClient(){
   if(!name){toast('⚠ 会社名を入力してください','#f59e0b');return;}
   const tasksRaw=document.getElementById('m-ctasks').value.trim();
   const tasks=tasksRaw?tasksRaw.split(',').map(t=>t.trim()).filter(Boolean):[];
-  S.clients.push({id:S.nextId++,name,yomi,contacts:[..._newP],tasks});
+  S.clients.push({id:S.nextId++,name,yomi,contacts:[_newP],tasks});
   _newP=[];
   document.getElementById('m-cname').value='';
   document.getElementById('m-cyomi').value='';
