@@ -217,6 +217,42 @@ border-bottom:1px solid var(–border);display:flex;align-items:center;gap:8px;t
 .wsearch-item .witem-tel{font-size:11px;color:var(–t2);margin-left:auto}
 .wsearch-empty{padding:14px 13px;font-size:13px;color:var(–t3);text-align:center}
 
+/* EQUIPMENT CHECKLIST */
+.eq-list{display:flex;flex-direction:column;gap:8px;}
+.eq-item{display:flex;align-items:center;gap:10px;
+background:var(–s2);border:1px solid var(–border);
+border-radius:10px;padding:11px 13px;transition:border-color .15s;}
+.eq-item.checked{background:rgba(240,180,41,.08);border-color:rgba(240,180,41,.4);}
+.eq-cb{display:none;}
+.eq-label{display:flex;align-items:center;gap:10px;flex:1;cursor:pointer;user-select:none;}
+.eq-box{width:22px;height:22px;border:2px solid var(–border);border-radius:6px;
+background:var(–s3);flex-shrink:0;display:flex;align-items:center;justify-content:center;
+transition:all .15s;font-size:14px;}
+.eq-cb:checked ~ .eq-label .eq-box{background:var(–a);border-color:var(–a);color:#1a1c24;}
+.eq-cb:checked ~ .eq-label .eq-box::after{content:‘✓’;font-weight:900;color:#1a1c24;}
+.eq-name{font-size:14px;font-weight:600;color:var(–t1);}
+.eq-count-wrap{display:none;align-items:center;gap:7px;margin-left:auto;}
+.eq-count-wrap.on{display:flex;}
+.eq-count{width:64px;background:var(–s3);border:1px solid var(–a);
+border-radius:7px;padding:5px 8px;color:var(–t1);font-size:14px;
+font-family:inherit;outline:none;text-align:center;}
+.eq-unit{font-size:12px;color:var(–t2);font-weight:600;}
+
+/* WORKER CHECKLIST */
+.worker-list{display:flex;flex-direction:column;gap:6px;margin-bottom:8px;}
+.worker-row{display:flex;align-items:center;gap:10px;
+background:var(–s2);border:1px solid var(–border);
+border-radius:9px;padding:9px 12px;cursor:pointer;
+transition:all .15s;user-select:none;}
+.worker-row.sel{background:rgba(240,180,41,.1);border-color:rgba(240,180,41,.5);}
+.worker-row-box{width:20px;height:20px;border:2px solid var(–border);border-radius:5px;
+background:var(–s3);flex-shrink:0;display:flex;align-items:center;justify-content:center;
+font-size:12px;font-weight:900;transition:all .15s;}
+.worker-row.sel .worker-row-box{background:var(–a);border-color:var(–a);color:#1a1c24;}
+.worker-row-name{font-size:14px;font-weight:600;color:var(–t1);flex:1;}
+.worker-row-yomi{font-size:11px;color:var(–t2);}
+.worker-row-tel{font-size:11px;color:var(–t2);margin-left:auto;}
+
 .toast{position:fixed;bottom:18px;left:50%;
 transform:translateX(-50%) translateY(14px);
 background:var(–green);color:#052e16;padding:8px 16px;
@@ -345,11 +381,43 @@ opacity:0;transition:all .25s;z-index:400;white-space:nowrap;pointer-events:none
     <select class="sel" id="worker-sel" onchange="addWorker(this.value)" style="margin-bottom:8px;">
       <option value="">リストから選んで追加</option>
     </select>
-    <!-- 直接入力でも追加 -->
-    <div style="display:flex;gap:7px;">
-      <input class="inp" id="worker-manual" placeholder="" style="flex:1;">
-      <button class="bsm bsm-a" onclick="addWorkerManual()" style="height:42px;white-space:nowrap;flex-shrink:0;">追加</button>
+
+  </div>
+
+  <div class="card">
+    <div class="sec">資機材</div>
+    <div class="eq-list">
+
+```
+  <!-- パレット -->
+  <div class="eq-item" id="eq-pallet">
+    <input type="checkbox" class="eq-cb" id="cb-pallet"
+      onchange="onEqChange('pallet')">
+    <label class="eq-label" for="cb-pallet">
+      <div class="eq-box"></div>
+      <span class="eq-name">パレット</span>
+    </label>
+
+  </div>
+
+  <!-- 台車 -->
+  <div class="eq-item" id="eq-daisha">
+    <input type="checkbox" class="eq-cb" id="cb-daisha"
+      onchange="onEqChange('daisha')">
+    <label class="eq-label" for="cb-daisha">
+      <div class="eq-box"></div>
+      <span class="eq-name">台車</span>
+    </label>
+    <div class="eq-count-wrap" id="cnt-daisha">
+      <input type="number" class="eq-count" id="num-daisha"
+        min="1" value="1" placeholder="">
+      <span class="eq-unit">セット</span>
     </div>
+  </div>
+
+</div>
+```
+
   </div>
 
   <div class="card">
@@ -749,8 +817,7 @@ function initWorkerSel(){
 }
 function addWorker(id){
   if(!id) return;
-  if(!selW.includes(id)) selW.push(id);
-  document.getElementById('worker-sel').value='';
+  if(!selW.includes(id)){ selW.push(id); }
   renderWorkerChips();
 }
 function removeWorker(id){
@@ -765,7 +832,6 @@ function renderWorkerChips(){
     el.innerHTML=`<span>${w.name}</span><span class="chip-x" onclick="removeWorker('${id}')">×</span>`;
     cont.appendChild(el);
   });
-  // 人数バッジ
   const badge=document.getElementById('worker-count');
   if(selW.length>0){
     badge.textContent=selW.length+'名'; badge.style.display='inline-flex';
@@ -779,7 +845,7 @@ function buildCarPills(){
   const g=document.getElementById('car-pills'); g.innerHTML='';
   S.cars.forEach((c,i)=>{
     const inp=document.createElement('input');
-    inp.type='radio'; inp.name='car'; inp.id='c'+i; inp.className='pi'; inp.value=c;
+    inp.type='checkbox'; inp.id='c'+i; inp.className='pi'; inp.value=c;
     const lbl=document.createElement('label');
     lbl.className='pl'; lbl.setAttribute('for','c'+i); lbl.textContent=c;
     g.appendChild(inp); g.appendChild(lbl);
@@ -802,8 +868,9 @@ function collectForm(){
   const clientId=parseInt(clientSel.value)||null;
   const clientManual=document.getElementById('f-client-manual').value.trim();
   const clientName=clientId ? clientSel.options[clientSel.selectedIndex].text : clientManual;
-  let car='';
-  document.querySelectorAll('input[name=car]').forEach(r=>{if(r.checked)car=r.value;});
+  const cars=[];
+  document.querySelectorAll('#car-pills .pi:checked').forEach(cb=>cars.push(cb.value));
+  const car=cars.join('・');
   const works=[];
   document.querySelectorAll('#work-pills .pi:checked').forEach(cb=>works.push(cb.value));
   const wNames=selW.map(id=>S.workers.find(w=>w.id===id)?.name).filter(Boolean);
@@ -848,7 +915,9 @@ function generate(){
   if(f.cname)       txt+=`ご担当...${f.cname}さん\n`;
   if(f.ctel)        txt+=`${f.ctel}\n`;
   if(f.workerNames.length) txt+=`\n作業人員計${f.workerNames.length}名 ${f.workerNames.join('・')}\n`;
-  if(f.works.length)       txt+=`\n内容${f.works.join('・')}\n`;
+  if(f.works.length)       txt+=`\n内容...${f.works.join('・')}\n`;
+  const eqs = collectEquipment();
+  if(eqs.length) txt+=`\n資機材...${eqs.map(e=>e.unit?`${e.name} ${e.num}${e.unit}`:e.name).join('・')}\n`;
   document.getElementById('preview-text').textContent=txt.trim();
   document.getElementById('modal-line').classList.add('on');
 }
@@ -1018,11 +1087,16 @@ function reuse(siteId, entryId){
   document.querySelectorAll('#work-pills .pi').forEach(cb=>{
     cb.checked=e.works&&e.works.includes(cb.value);
   });
-  document.querySelectorAll('input[name=car]').forEach(r=>{r.checked=r.value===e.car;});
+  document.querySelectorAll('#car-pills .pi').forEach(cb=>{cb.checked=e.car&&e.car.split('・').includes(cb.value);});
   document.querySelectorAll('.scr').forEach(s=>s.classList.remove('on'));
   document.querySelectorAll('.tab').forEach(b=>b.classList.remove('on'));
   document.getElementById('scr-create').classList.add('on');
   document.querySelectorAll('.tab')[0].classList.add('on');
+  // 資機材リセット
+  ['pallet','daisha'].forEach(id=>{
+    const cb=document.getElementById('cb-'+id);
+    if(cb){ cb.checked=false; onEqChange(id); }
+  });
   toast('✓ フォームに読み込みました'); window.scrollTo(0,0);
 }
 // ════════ マスタ管理 ════════
@@ -1389,29 +1463,97 @@ function saveEditSite(){
 function workerSearchInput(inp){
   const val = inp.value.trim();
   const dd = document.getElementById('worker-dropdown');
-  // 未選択作業員のみ候補に
-  const avail = S.workers.filter(w=>!selW.includes(w.id));
+  // 全作業員（選択済み含む）を表示
+  const workers = S.workers.filter(w=>!w._tmp);
   const hits = val
-    ? avail.filter(w=>matchYomi(val, w.name, w.yomi)||(w.tel&&w.tel.includes(val)))
-    : avail;
+    ? workers.filter(w=>matchYomi(val, w.name, w.yomi||'')||(w.tel&&w.tel.includes(val)))
+    : workers;
   if(hits.length===0){
     dd.innerHTML=`<div class="wsearch-empty">${val?'該当なし':'登録作業員なし'}</div>`;
-  } else {
-    dd.innerHTML='';
-    hits.forEach(w=>{
-      const item=document.createElement('div');
-      item.className='wsearch-item';
-      const safeVal = val.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');
-      const hi = val ? w.name.replace(new RegExp(safeVal,'g'),`<b>${val}</b>`) : w.name;
-      item.innerHTML=`<span>👷 </span><span>${hi}</span>${w.yomi?`<span style="font-size:11px;color:var(--t2);margin-left:4px;">${w.yomi}</span>`:''}
-        <span class="witem-tel">${w.tel||''}</span>`;
-      item.onmousedown=(e)=>{ e.preventDefault(); addWorker(w.id); inp.value=''; dd.classList.remove('on'); };
-      dd.appendChild(item);
-    });
+    dd.classList.add('on'); return;
   }
+  dd.innerHTML='';
+  const safeVal = val.replace(/[.*+?^${}()|[\]\\]/g,'\$&');
+  hits.forEach(w=>{
+    const isSel = selW.includes(w.id);
+    const item = document.createElement('div');
+    item.className = 'wsearch-item';
+    item.style.cssText = isSel
+      ? 'background:rgba(240,180,41,.12);border-left:3px solid var(--a);'
+      : 'border-left:3px solid transparent;';
+    const hi = val ? w.name.replace(new RegExp(safeVal,'g'),`<b>${val}</b>`) : w.name;
+    // チェックボックス風アイコン
+    const checkIcon = isSel
+      ? `<span style="width:18px;height:18px;background:var(--a);border-radius:4px;display:inline-flex;align-items:center;justify-content:center;font-size:11px;font-weight:900;color:#1a1c24;flex-shrink:0;">✓</span>`
+      : `<span style="width:18px;height:18px;background:var(--s3);border:2px solid var(--border);border-radius:4px;display:inline-flex;flex-shrink:0;"></span>`;
+    item.innerHTML=`${checkIcon}<span style="flex:1;">${hi}</span>${w.yomi?`<span style="font-size:11px;color:var(--t2);">${w.yomi}</span>`:''}
+      <span class="witem-tel">${w.tel||''}</span>`;
+    item.onmousedown=(e)=>{
+      e.preventDefault();
+      // 選択/解除トグル（検索欄はそのまま・ドロップダウンも閉じない）
+      if(isSel){
+        removeWorker(w.id);
+      } else {
+        addWorker(w.id);
+      }
+      // ドロップダウン再描画
+      setTimeout(()=>workerSearchInput(inp), 50);
+    };
+    dd.appendChild(item);
+  });
   dd.classList.add('on');
 }
 
+
+// ════════ 作業員チェックリスト ════════
+function renderWorkerList(query){
+  const cont = document.getElementById('worker-list');
+  if(!cont) return;
+  const q = (query||'').trim();
+  const workers = S.workers.filter(w=>!w._tmp);
+  const hits = q
+    ? workers.filter(w=>matchYomi(q, w.name, w.yomi||''))
+    : workers;
+  if(hits.length===0){
+    cont.innerHTML=`<div style="font-size:13px;color:var(--t3);padding:8px 4px;">${q?'該当なし':'作業員が登録されていません'}</div>`;
+    return;
+  }
+  cont.innerHTML='';
+  hits.forEach(w=>{
+    const isSel = selW.includes(w.id);
+    const row = document.createElement('div');
+    row.className = 'worker-row' + (isSel?' sel':'');
+    row.innerHTML=`
+      <div class="worker-row-box">${isSel?'✓':''}</div>
+      <span class="worker-row-name">${w.name}</span>
+      ${w.yomi?`<span class="worker-row-yomi">${w.yomi}</span>`:''}
+      ${w.tel?`<span class="worker-row-tel">${w.tel}</span>`:''}`;
+    row.onclick = ()=>{ toggleWorker(w.id); };
+    cont.appendChild(row);
+  });
+}
+
+function toggleWorker(id){
+  if(selW.includes(id)){
+    selW = selW.filter(x=>x!==id);
+  } else {
+    selW.push(id);
+  }
+  updateWorkerBadge();
+  const q = document.getElementById('worker-search')?.value||'';
+  renderWorkerList(q);
+}
+
+function updateWorkerBadge(){
+  const badge = document.getElementById('worker-count');
+  if(!badge) return;
+  if(selW.length>0){
+    badge.textContent = selW.length+'名';
+    badge.style.display = 'inline-flex';
+  } else {
+    badge.style.display = 'none';
+  }
+}
 // フォーカスが外れたらドロップダウンを閉じる
 document.addEventListener('click',(e)=>{
   const wrap=document.querySelector('.wsearch-wrap');
@@ -1545,6 +1687,34 @@ function addWorkerManual(){
     }
   }
   document.getElementById('worker-manual').value='';
+}
+
+
+// ════════ 資機材チェックリスト ════════
+function onEqChange(id){
+  const cb = document.getElementById('cb-'+id);
+  const item = document.getElementById('eq-'+id);
+  const cnt = document.getElementById('cnt-'+id);
+  if(cb.checked){
+    item.classList.add('checked');
+    cnt.classList.add('on');
+  } else {
+    item.classList.remove('checked');
+    cnt.classList.remove('on');
+  }
+}
+
+// 資機材データ収集
+function collectEquipment(){
+  const result = [];
+  [['pallet','パレット',''],['daisha','台車','セット']].forEach(([id,name,unit])=>{
+    const cb = document.getElementById('cb-'+id);
+    if(cb && cb.checked){
+      const num = document.getElementById('num-'+id)?.value||'1';
+      result.push({name, num, unit});
+    }
+  });
+  return result;
 }
 
 // ── INIT ──
