@@ -12,6 +12,12 @@
   --border:#3a3f5c;--a:#f0b429;--a2:#60c8f5;
   --green:#34d399;--red:#f87171;--purple:#a78bfa;
   --t1:#f0f2fa;--t2:#8892b0;--t3:#4a5278;
+  --checked-bg:rgba(255,255,255,0.15);
+  --checked-border:rgba(255,255,255,0.4);
+  --checked-color:#ffffff;
+  --tag-bg:rgba(96,200,245,.1);
+  --tag-border:rgba(96,200,245,.2);
+  --tag-color:#60c8f5;
 }
 *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 body{background:var(--bg);color:var(--t1);font-family:'Noto Sans JP',sans-serif;
@@ -72,7 +78,7 @@ cursor:pointer;margin-top:5px;width:100%;font-family:inherit;transition:opacity 
 .pi{display:none}
 .pl{display:inline-block;padding:7px 14px;background:var(–s3);border:1px solid var(–border);
 border-radius:20px;font-size:13px;color:var(–t1);cursor:pointer;transition:all .15s;user-select:none}
-.pi:checked+.pl{background:rgba(255,255,255,0.15);border-color:rgba(255,255,255,0.4);color:#ffffff;font-weight:700}
+.pi:checked+.pl{background:var(–checked-bg,rgba(255,255,255,0.15));border-color:var(–checked-border,rgba(255,255,255,0.4));color:var(–checked-color,#ffffff);font-weight:700}
 
 /* CHIPS */
 .chips{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px;min-height:4px}
@@ -288,7 +294,7 @@ border-radius:9px;padding:9px 12px;cursor:pointer;transition:all .15s;}
 .sc-name{font-size:13px;font-weight:700;flex:1;color:var(–t1);}
 .sc-works{display:flex;flex-wrap:wrap;gap:3px;margin-top:4px;}
 .sc-work-tag{font-size:10px;font-weight:600;padding:1px 6px;border-radius:20px;
-background:rgba(96,200,245,.1);color:var(–a2);border:1px solid rgba(96,200,245,.2);}
+background:var(–tag-bg,rgba(96,200,245,.1));color:var(–tag-color,var(–a2));border:1px solid var(–tag-border,rgba(96,200,245,.2));}
 
 /* ─── テーマカスタマイズ ─── */
 .theme-presets{display:flex;flex-wrap:wrap;gap:7px;margin-bottom:14px;}
@@ -458,6 +464,16 @@ opacity:0;transition:all .25s;z-index:400;white-space:nowrap;pointer-events:none
       <span class="eq-name">パレット</span>
     </label>
 
+  </div>
+
+  <!-- ベニヤ -->
+  <div class="eq-item" id="eq-benya">
+    <input type="checkbox" class="eq-cb" id="cb-benya"
+      onchange="onEqChange('benya')">
+    <label class="eq-label" for="cb-benya">
+      <div class="eq-box"></div>
+      <span class="eq-name">ベニヤ</span>
+    </label>
   </div>
 
   <!-- 台車 -->
@@ -1008,7 +1024,7 @@ function generate(){
   // 担当者への連絡
   if(f.cname) txt+=`＊現場に着いたら、担当の${f.cname}さんに連絡してください。\n`;
   // 資機材
-  if(eqs.length) txt+=`＊${eqs.map(e=>e.unit?`${e.name} ${e.num}${e.unit}`:e.name).join('・')}を持参してください。\n`;
+  if(eqs.length) txt+=`＊${eqs.map(e=>e.unit?`${e.name} ${e.num}${e.unit}`:e.name).join('・')}を持って行ってください。\n`;
   // 備考
   if(f.note) txt+=`\n${f.note}\n`;
   // 詳細情報
@@ -1816,11 +1832,16 @@ function onEqChange(id){
 // 資機材データ収集
 function collectEquipment(){
   const result = [];
-  [['pallet','パレット',''],['daisha','台車','セット']].forEach(([id,name,unit])=>{
+  [['pallet','パレット',''],['daisha','台車','セット'],['benya','ベニヤ','']].forEach(([id,name,unit])=>{
     const cb = document.getElementById('cb-'+id);
     if(cb && cb.checked){
-      const num = document.getElementById('num-'+id)?.value||'1';
-      result.push({name, num, unit});
+      if(unit){
+        const num = document.getElementById('num-'+id)?.value?.trim();
+        // 未記入の場合はセット数なし（「台車を持参」）
+        result.push(num ? {name, num, unit} : {name, num:'', unit:''});
+      } else {
+        result.push({name, num:'', unit:''});
+      }
     }
   });
   return result;
@@ -1966,22 +1987,85 @@ const PRESETS = [
 
 function applyTheme(t){
   const r = document.documentElement.style;
-  // bgから s1〜border を自動生成（常にbgより明るく）
-  const s1 = lighten(t.bg, 8);
-  r.setProperty('--bg', t.bg);
-  r.setProperty('--s1', s1);
-  r.setProperty('--s2', lighten(t.bg, 16));
-  r.setProperty('--s3', lighten(t.bg, 24));
-  r.setProperty('--border', lighten(t.bg, 32));
-  // アクセントはプリセットから（変更不可）
-  r.setProperty('--a',  t.a || '#f0b429');
-  r.setProperty('--a2', t.a2 || '#60c8f5');
-  // テキストカラーをbg明度で自動判定
-  const isDark = getLum(t.bg)<0.5;
+  const bg = t.bg;
+  const lum = getLum(bg);
+  const isDark = lum < 0.45;
+  const step = isDark ? 1 : -1; // 暗背景→明るく / 明背景→暗く
+
+  // カード・ボーダー系：bgからステップで生成
+  r.setProperty('--bg',     bg);
+  r.setProperty('--s1',     shift(bg, step*9));
+  r.setProperty('--s2',     shift(bg, step*17));
+  r.setProperty('--s3',     shift(bg, step*26));
+  r.setProperty('--border', shift(bg, step*36));
+
+  // アクセント：bgと補色的にコントラストが出る色を自動選択
+  const accentPairs = [
+    ['#f0b429','#60c8f5'], // 黄×青（デフォルト）
+    ['#34d399','#a78bfa'], // 緑×紫
+    ['#f472b6','#38bdf8'], // ピンク×水色
+    ['#fb923c','#818cf8'], // オレンジ×インディゴ
+    ['#f87171','#34d399'], // 赤×緑
+    ['#e879f9','#fbbf24'], // マゼンタ×黄
+  ];
+  // bg色相に対して最もコントラストの高いペアを選ぶ
+  const [h] = rgbToHsl(...hexToRgb(bg));
+  // 色相180度対側に近いアクセントを選ぶ
+  const hues = [30, 150, 300, 24, 0, 290]; // 各ペアの主アクセント色相
+  let bestIdx=0, bestDiff=0;
+  hues.forEach((ah,i)=>{
+    const diff = Math.abs(((ah - h*360 + 180 + 360)%360) - 180);
+    if(diff > bestDiff){ bestDiff=diff; bestIdx=i; }
+  });
+  const [a, a2] = accentPairs[bestIdx];
+  r.setProperty('--a',  a);
+  r.setProperty('--a2', a2);
+
+  // テキスト
   r.setProperty('--t1', isDark?'#f0f2fa':'#1a1c24');
   r.setProperty('--t2', isDark?'#8892b0':'#4a5278');
   r.setProperty('--t3', isDark?'#4a5278':'#8892b0');
+
+  // チェック済みタグの色をアクセントに合わせてCSS変数で制御
+  r.setProperty('--checked-bg',     isDark?'rgba(255,255,255,0.13)':'rgba(0,0,0,0.10)');
+  r.setProperty('--checked-border', isDark?'rgba(255,255,255,0.38)':'rgba(0,0,0,0.30)');
+  r.setProperty('--checked-color',  isDark?'#ffffff':'#1a1c24');
+
+  // sc-work-tagの色（a2ベース）
+  r.setProperty('--tag-bg',     hexAlpha(a2, 0.12));
+  r.setProperty('--tag-border', hexAlpha(a2, 0.25));
+  r.setProperty('--tag-color',  a2);
+
   syncColorInputs(t);
+}
+
+// HSL変換
+function rgbToHsl(r,g,b){
+  r/=255; g/=255; b/=255;
+  const max=Math.max(r,g,b), min=Math.min(r,g,b);
+  let h,s,l=(max+min)/2;
+  if(max===min){h=s=0;}
+  else{
+    const d=max-min; s=l>0.5?d/(2-max-min):d/(max+min);
+    switch(max){case r:h=(g-b)/d+(g<b?6:0);break;case g:h=(b-r)/d+2;break;default:h=(r-g)/d+4;}
+    h/=6;
+  }
+  return [h,s,l];
+}
+
+// bgをRGB各チャンネルをshiftして明暗調整
+function shift(hex, pct){
+  let [r,g,b]=hexToRgb(hex);
+  r=Math.min(255,Math.max(0,r+pct*2));
+  g=Math.min(255,Math.max(0,g+pct*2));
+  b=Math.min(255,Math.max(0,b+pct*2));
+  return rgbToHex(Math.round(r),Math.round(g),Math.round(b));
+}
+
+// hex+alpha → rgba文字列
+function hexAlpha(hex, alpha){
+  const [r,g,b]=hexToRgb(hex);
+  return `rgba(${r},${g},${b},${alpha})`;
 }
 
 function lighten(hex, pct){
