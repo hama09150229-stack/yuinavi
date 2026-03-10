@@ -70,7 +70,7 @@ cursor:pointer;margin-top:5px;width:100%;font-family:inherit;transition:opacity 
 /* PILLS */
 .pills{display:flex;flex-wrap:wrap;gap:6px}
 .pi{display:none}
-.pl{display:inline-block;padding:6px 12px;background:var(–s2);border:1px solid var(–border);
+.pl{display:inline-block;padding:7px 14px;background:var(–s3);border:1px solid var(–border);
 border-radius:20px;font-size:13px;color:var(–t1);cursor:pointer;transition:all .15s;user-select:none}
 .pi:checked+.pl{background:var(–a);border-color:var(–a);color:#1a1c24;font-weight:700}
 
@@ -626,8 +626,8 @@ const DEFAULTS = {
   history:[],
   nextId:10, nextWid:3
 };
-let S = {DEFAULTS};
-try{const sv=localStorage.getItem('yuinavi4');if(sv)S={DEFAULTS,JSON.parse(sv)};}catch(e){}
+let S = {...DEFAULTS};
+try{const sv=localStorage.getItem('yuinavi4');if(sv)S={...DEFAULTS,...JSON.parse(sv)};}catch(e){}
 function persist(){try{localStorage.setItem('yuinavi4',JSON.stringify(S));}catch(e){}}
 
 function toast(msg,color){
@@ -1048,7 +1048,7 @@ function saveClient(){
   if(!name){toast('⚠ 会社名を入力してください','#f59e0b');return;}
   const tasksRaw=document.getElementById('m-ctasks').value.trim();
   const tasks=tasksRaw?tasksRaw.split(',').map(t=>t.trim()).filter(Boolean):[];
-  S.clients.push({id:S.nextId++,name,yomi,contacts:[_newP],tasks});
+  S.clients.push({id:S.nextId++,name,yomi,contacts:[..._newP],tasks});
   _newP=[];
   document.getElementById('m-cname').value='';
   document.getElementById('m-cyomi').value='';
