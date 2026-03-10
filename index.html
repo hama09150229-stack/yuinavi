@@ -311,6 +311,66 @@ text-shadow:0 1px 3px rgba(0,0,0,.5);}
 background:none;cursor:pointer;padding:2px;}
 .color-inp-wrap .inp{font-size:12px;font-family:‘IBM Plex Mono’,monospace;flex:1;}
 
+/* ─── フローティング参照写真 ─── */
+#float-photo-wrap{
+position:fixed;z-index:200;
+touch-action:none;
+display:none;
+}
+#float-photo{
+width:130px;height:100px;object-fit:cover;
+border-radius:10px;border:2px solid var(–a);
+box-shadow:0 4px 16px rgba(0,0,0,.5);
+display:block;cursor:grab;
+user-select:none;-webkit-user-select:none;
+}
+#float-photo:active{cursor:grabbing;}
+#float-photo-close{
+position:absolute;top:-8px;right:-8px;
+width:20px;height:20px;border-radius:50%;
+background:var(–red);color:#fff;
+font-size:12px;font-weight:900;
+display:flex;align-items:center;justify-content:center;
+cursor:pointer;box-shadow:0 2px 6px rgba(0,0,0,.4);
+line-height:1;
+}
+#float-photo-add{
+position:fixed;bottom:72px;right:14px;z-index:199;
+width:44px;height:44px;border-radius:50%;
+background:var(–s2);border:1.5px solid var(–border);
+color:var(–t2);font-size:20px;
+display:flex;align-items:center;justify-content:center;
+cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,.3);
+}
+/* ズームオーバーレイ（写真用） */
+#photo-zoom-overlay{
+position:fixed;inset:0;background:rgba(0,0,0,.92);
+z-index:400;display:none;
+align-items:center;justify-content:center;
+flex-direction:column;
+}
+#photo-zoom-overlay.on{display:flex;}
+#photo-zoom-inner{
+position:relative;width:92vw;height:82vh;
+display:flex;align-items:center;justify-content:center;
+overflow:hidden;
+}
+#photo-zoom-img{
+max-width:100%;max-height:100%;
+border-radius:8px;
+transform-origin:center center;
+transition:transform .1s;
+touch-action:none;
+}
+#photo-zoom-close{
+position:absolute;top:12px;right:12px;
+width:34px;height:34px;border-radius:50%;
+background:rgba(255,255,255,.15);color:#fff;
+font-size:18px;font-weight:900;
+display:flex;align-items:center;justify-content:center;
+cursor:pointer;z-index:401;
+}
+
 .toast{position:fixed;bottom:18px;left:50%;
 transform:translateX(-50%) translateY(14px);
 background:var(–green);color:#052e16;padding:8px 16px;
@@ -799,6 +859,31 @@ opacity:0;transition:all .25s;z-index:400;white-space:nowrap;pointer-events:none
   <img id="icon-zoom-img" style="max-width:80vw;max-height:80vh;border-radius:16px;
     transform:scale(0);transition:transform .3s cubic-bezier(.34,1.56,.64,1);">
 </div>
+
+<!-- フローティング参照写真 -->
+
+<div id="float-photo-wrap">
+  <img id="float-photo" src="" alt=""
+    ontouchstart="onFloatTouchStart(event)"
+    ontouchmove="onFloatTouchMove(event)"
+    ontouchend="onFloatTouchEnd(event)">
+  <div id="float-photo-close" onclick="closeFloatPhoto()">✕</div>
+</div>
+
+<!-- 写真追加ボタン（指示作成タブのみ表示） -->
+
+<div id="float-photo-add" title="参照写真を追加" onclick="triggerPhotoUpload()">📷</div>
+<input type="file" id="photo-file-input" accept="image/*" style="display:none" onchange="onPhotoSelected(event)">
+
+<!-- 写真ズームオーバーレイ -->
+
+<div id="photo-zoom-overlay" onclick="closePhotoZoom()">
+  <div id="photo-zoom-inner">
+    <img id="photo-zoom-img" src="">
+    <div id="photo-zoom-close" onclick="closePhotoZoom()">✕</div>
+  </div>
+</div>
+
 <div class="toast" id="toast"></div>
 
 <script>
@@ -840,6 +925,7 @@ function switchTab(id,btn){
   document.getElementById('scr-'+id).classList.add('on');
   btn.classList.add('on');
   if(id==='history') renderHistory();
+  showPhotoBtn('scr-'+id);
   if(id==='master')  renderMaster();
 }
 
@@ -2144,6 +2230,145 @@ function onIconTap(e){
   img.style.transform = 'scale(0)';
   ov.style.display = 'flex';
   setTimeout(()=>{ img.style.transform = 'scale(1)'; }, 20);
+}
+
+// ════════ フローティング参照写真 ════════
+let _floatDragging = false;
+let _floatOx=0, _floatOy=0, _floatX=20, _floatY=100;
+let _floatTapLast=0, _floatTapTimer=null;
+
+function triggerPhotoUpload(){
+  document.getElementById('photo-file-input').click();
+}
+
+function onPhotoSelected(e){
+  const file = e.target.files[0];
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = ev => {
+    const wrap = document.getElementById('float-photo-wrap');
+    const img  = document.getElementById('float-photo');
+    img.src = ev.target.result;
+    // 初期位置：画面右上付近
+    _floatX = window.innerWidth - 150;
+    _floatY = 80;
+    wrap.style.left = _floatX+'px';
+    wrap.style.top  = _floatY+'px';
+    wrap.style.display = 'block';
+    // 📷ボタン非表示
+    document.getElementById('float-photo-add').style.display='none';
+  };
+  reader.readAsDataURL(file);
+  e.target.value='';
+}
+
+function closeFloatPhoto(){
+  document.getElementById('float-photo-wrap').style.display='none';
+  document.getElementById('float-photo-add').style.display='flex';
+}
+
+// ドラッグ & ダブルタップ
+function onFloatTouchStart(e){
+  const touch = e.touches[0];
+  const wrap = document.getElementById('float-photo-wrap');
+  const rect = wrap.getBoundingClientRect();
+  _floatOx = touch.clientX - rect.left;
+  _floatOy = touch.clientY - rect.top;
+  _floatDragging = true;
+
+  // ダブルタップ検出
+  const now = Date.now();
+  if(now - _floatTapLast < 300){
+    clearTimeout(_floatTapTimer);
+    openPhotoZoom();
+  } else {
+    _floatTapTimer = setTimeout(()=>{}, 300);
+  }
+  _floatTapLast = now;
+}
+
+function onFloatTouchMove(e){
+  if(!_floatDragging) return;
+  e.preventDefault();
+  const touch = e.touches[0];
+  const wrap = document.getElementById('float-photo-wrap');
+  _floatX = touch.clientX - _floatOx;
+  _floatY = touch.clientY - _floatOy;
+  // 画面内に収める
+  const maxX = window.innerWidth  - wrap.offsetWidth;
+  const maxY = window.innerHeight - wrap.offsetHeight;
+  _floatX = Math.max(0, Math.min(_floatX, maxX));
+  _floatY = Math.max(0, Math.min(_floatY, maxY));
+  wrap.style.left = _floatX+'px';
+  wrap.style.top  = _floatY+'px';
+}
+
+function onFloatTouchEnd(e){
+  _floatDragging = false;
+}
+
+// ════════ 写真ズームオーバーレイ（ピンチ対応）════════
+let _zScale=1, _zLastDist=0, _zPanX=0, _zPanY=0;
+let _zLastPanX=0, _zLastPanY=0, _zPanStartX=0, _zPanStartY=0;
+
+function openPhotoZoom(){
+  const src = document.getElementById('float-photo').src;
+  const img = document.getElementById('photo-zoom-img');
+  img.src = src;
+  _zScale=1; _zPanX=0; _zPanY=0;
+  img.style.transform = 'scale(1) translate(0,0)';
+  document.getElementById('photo-zoom-overlay').classList.add('on');
+  img.ontouchstart = zoomTouchStart;
+  img.ontouchmove  = zoomTouchMove;
+  img.ontouchend   = zoomTouchEnd;
+}
+
+function closePhotoZoom(){
+  document.getElementById('photo-zoom-overlay').classList.remove('on');
+}
+
+function getTouchDist(t){ return Math.hypot(t[0].clientX-t[1].clientX, t[0].clientY-t[1].clientY); }
+
+function zoomTouchStart(e){
+  if(e.touches.length===2){
+    _zLastDist = getTouchDist(e.touches);
+    _zLastPanX = (_floatX||0); _zLastPanY = (_floatY||0);
+  } else if(e.touches.length===1){
+    _zPanStartX = e.touches[0].clientX - _zPanX;
+    _zPanStartY = e.touches[0].clientY - _zPanY;
+  }
+}
+
+function zoomTouchMove(e){
+  e.preventDefault();
+  const img = document.getElementById('photo-zoom-img');
+  if(e.touches.length===2){
+    const dist = getTouchDist(e.touches);
+    _zScale = Math.min(6, Math.max(0.5, _zScale * (dist/_zLastDist)));
+    _zLastDist = dist;
+  } else if(e.touches.length===1){
+    _zPanX = e.touches[0].clientX - _zPanStartX;
+    _zPanY = e.touches[0].clientY - _zPanStartY;
+  }
+  img.style.transform = `scale(${_zScale}) translate(${_zPanX/_zScale}px,${_zPanY/_zScale}px)`;
+}
+
+function zoomTouchEnd(e){
+  if(e.touches.length < 2) _zLastDist=0;
+}
+
+// タブ切替時に📷ボタン表示制御
+function showPhotoBtn(tabId){
+  const btn = document.getElementById('float-photo-add');
+  if(!btn) return;
+  const wrap = document.getElementById('float-photo-wrap');
+  if(tabId==='scr-create'){
+    // 写真が既に表示中なら非表示のまま
+    if(wrap.style.display==='block') btn.style.display='none';
+    else btn.style.display='flex';
+  } else {
+    btn.style.display='none';
+  }
 }
 // ── INIT ──
 initClientSel(); initWorkerSel();
