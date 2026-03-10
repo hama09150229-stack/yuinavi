@@ -254,12 +254,14 @@ opacity:0;transition:all .25s;z-index:400;white-space:nowrap;pointer-events:none
     <div class="sec">現場情報</div>
     <div class="fg">
       <label class="lbl">現場名</label>
-      <div id="site-templates" style="display:flex;flex-wrap:wrap;gap:4px;margin-bottom:6px;"></div>
-      <input class="inp" id="f-site" placeholder="例）フォーシーズンホテル">
+      <div class="suggest-wrap">
+        <input class="inp" id="f-site" placeholder="" oninput="suggestSite(this)" onfocus="suggestSite(this)" autocomplete="off">
+        <div class="suggest-list" id="sg-f-site" style="display:none;"></div>
+      </div>
     </div>
     <div class="fg">
       <label class="lbl">現場住所</label>
-      <input class="inp" id="f-addr" placeholder="例）沖縄県国頭郡恩納村恩納3111-1">
+      <input class="inp" id="f-addr" placeholder="">
 
 ```
 </div>
@@ -273,9 +275,10 @@ opacity:0;transition:all .25s;z-index:400;white-space:nowrap;pointer-events:none
 </div>
 <div class="fg">
   <label class="lbl">集合場所</label>
-  <!-- テンプレ選択ボタン群 -->
-  <div id="meet-templates" style="display:flex;flex-wrap:wrap;gap:4px;margin-bottom:6px;"></div>
-  <input class="inp" id="f-meet" placeholder="例）若狭の駐車場">
+  <div class="suggest-wrap">
+    <input class="inp" id="f-meet" placeholder="" oninput="suggestMeet(this)" onfocus="suggestMeet(this)" autocomplete="off">
+    <div class="suggest-list" id="sg-f-meet" style="display:none;"></div>
+  </div>
 </div>
 <div class="fg"><label class="lbl">ゼネコン（任意）</label>
   <input class="inp" id="f-gen" placeholder="">
@@ -289,8 +292,15 @@ opacity:0;transition:all .25s;z-index:400;white-space:nowrap;pointer-events:none
     <div class="fg">
       <label class="lbl">取引先</label>
       <select class="sel" id="f-client" onchange="onClientChange()">
-        <option value="">選択してください</option>
+        <option value="">リストから選択</option>
       </select>
+    </div>
+    <div class="fg">
+      <label class="lbl">その他</label>
+      <div class="suggest-wrap">
+        <input class="inp" id="f-client-manual" placeholder="" oninput="onClientManualInput(this)" autocomplete="off">
+        <div class="suggest-list" id="sg-f-client-manual" style="display:none;"></div>
+      </div>
     </div>
     <div id="contact-area" style="display:none;">
       <label class="lbl">担当者を選択</label>
@@ -308,10 +318,10 @@ opacity:0;transition:all .25s;z-index:400;white-space:nowrap;pointer-events:none
     </div>
     <div id="manual-contact" class="row2">
       <div class="fg"><label class="lbl">担当者名</label>
-        <div class="suggest-wrap"><input class="inp" id="f-cname" placeholder="例）島袋さん" oninput="suggest(this,'contact')" autocomplete="off"><div class="suggest-list" id="sg-f-cname" style="display:none;"></div></div>
+        <div class="suggest-wrap"><input class="inp" id="f-cname" placeholder="" oninput="suggest(this,'contact')" autocomplete="off"><div class="suggest-list" id="sg-f-cname" style="display:none;"></div></div>
       </div>
       <div class="fg"><label class="lbl">電話番号</label>
-        <input type="tel" class="inp" id="f-ctel" placeholder="080-XXXX-XXXX">
+        <input type="tel" class="inp" id="f-ctel" placeholder="">
       </div>
     </div>
   </div>
@@ -325,15 +335,20 @@ opacity:0;transition:all .25s;z-index:400;white-space:nowrap;pointer-events:none
     <!-- 検索追加 -->
     <div class="wsearch-wrap" style="margin-bottom:8px;">
       <span class="wsearch-icon">🔍</span>
-      <input class="wsearch-inp" id="worker-search" placeholder="名前で検索して追加"
+      <input class="wsearch-inp" id="worker-search" placeholder=""
         oninput="workerSearchInput(this)" onfocus="workerSearchInput(this)"
         autocomplete="off">
       <div class="wsearch-dropdown" id="worker-dropdown"></div>
     </div>
     <!-- セレクトでも追加できる -->
-    <select class="sel" id="worker-sel" onchange="addWorker(this.value)">
+    <select class="sel" id="worker-sel" onchange="addWorker(this.value)" style="margin-bottom:8px;">
       <option value="">リストから選んで追加</option>
     </select>
+    <!-- 直接入力でも追加 -->
+    <div style="display:flex;gap:7px;">
+      <input class="inp" id="worker-manual" placeholder="" style="flex:1;">
+      <button class="bsm bsm-a" onclick="addWorkerManual()" style="height:42px;white-space:nowrap;flex-shrink:0;">追加</button>
+    </div>
   </div>
 
   <div class="card">
@@ -348,7 +363,7 @@ opacity:0;transition:all .25s;z-index:400;white-space:nowrap;pointer-events:none
 
   <div class="card">
     <div class="sec">備考・注意事項</div>
-    <textarea class="ta" id="f-note" placeholder="安全帯持参・入退場ルートなど自由に入力"></textarea>
+    <textarea class="ta" id="f-note" placeholder=""></textarea>
   </div>
 
 <button class="btn btn-a" onclick="generate()" style="margin-bottom:8px;">📋 LINE指示文を生成</button>
@@ -372,21 +387,21 @@ opacity:0;transition:all .25s;z-index:400;white-space:nowrap;pointer-events:none
     <div class="sec">取引先を登録</div>
     <div class="fg"><label class="lbl">会社名</label>
       <div class="suggest-wrap">
-        <input class="inp" id="m-cname" placeholder="例）アドヴァン" oninput="suggest(this,'client')" autocomplete="off">
+        <input class="inp" id="m-cname" placeholder="" oninput="suggest(this,'client')" autocomplete="off">
         <div class="suggest-list" id="sg-m-cname" style="display:none;"></div>
       </div>
     </div>
     <div class="fg"><label class="lbl">読み仮名</label>
-      <input class="inp" id="m-cyomi" placeholder="例）あどゔぁん">
+      <input class="inp" id="m-cyomi" placeholder="">
     </div>
     <div class="fg"><label class="lbl">よく使う業務内容（カンマ区切り）</label>
-      <input class="inp" id="m-ctasks" placeholder="例）資材搬入,養生作業">
+      <input class="inp" id="m-ctasks" placeholder="">
     </div>
     <div class="div"></div>
     <div style="font-size:10px;color:var(--t2);font-weight:700;letter-spacing:.5px;margin-bottom:7px;">担当者（複数登録可）</div>
     <div id="m-contacts-preview" style="margin-bottom:7px;"></div>
     <div class="row2" style="margin-bottom:7px;">
-<div class="suggest-wrap"><input class="inp" id="m-pname" placeholder="担当者名" oninput="suggest(this,'contact')" autocomplete="off"><div class="suggest-list" id="sg-m-pname" style="display:none;"></div></div>
+<div class="suggest-wrap"><input class="inp" id="m-pname" placeholder="" oninput="suggest(this,'contact')" autocomplete="off"><div class="suggest-list" id="sg-m-pname" style="display:none;"></div></div>
       <input type="tel" class="inp" id="m-ptel" placeholder="電話番号">
     </div>
     <button class="bsm bsm-g" onclick="addPerson()" style="width:100%;justify-content:center;margin-bottom:9px;">＋ 担当者を追加</button>
@@ -402,14 +417,14 @@ opacity:0;transition:all .25s;z-index:400;white-space:nowrap;pointer-events:none
     <div class="sec">作業員を登録</div>
     <div class="row2" style="margin-bottom:8px;">
       <div><label class="lbl">氏名</label>
-        <input class="inp" id="m-wname" placeholder="例）濱元">
+        <input class="inp" id="m-wname" placeholder="">
       </div>
       <div><label class="lbl">読み仮名</label>
-        <input class="inp" id="m-wyomi" placeholder="例）はまもと">
+        <input class="inp" id="m-wyomi" placeholder="">
       </div>
     </div>
     <div class="fg" style="margin-bottom:9px;"><label class="lbl">電話番号</label>
-      <input type="tel" class="inp" id="m-wtel" placeholder="090-XXXX-XXXX">
+      <input type="tel" class="inp" id="m-wtel" placeholder="">
     </div>
     <button class="btn btn-a" onclick="saveWorker()">作業員を登録</button>
     <div id="worker-master-list" style="margin-top:9px;"></div>
@@ -423,14 +438,14 @@ opacity:0;transition:all .25s;z-index:400;white-space:nowrap;pointer-events:none
     <div class="sec">現場名テンプレ</div>
     <div class="row2">
       <div class="fg"><label class="lbl">現場名</label>
-        <input class="inp" id="m-site" placeholder="例）リザンシーパーク">
+        <input class="inp" id="m-site" placeholder="">
       </div>
       <div class="fg"><label class="lbl">読み仮名</label>
-        <input class="inp" id="m-syomi" placeholder="例）りざん">
+        <input class="inp" id="m-syomi" placeholder="">
       </div>
     </div>
     <div class="fg"><label class="lbl">住所</label>
-      <input class="inp" id="m-site-addr" placeholder="例）沖縄県国頭郡恩納村恩納3111-1">
+      <input class="inp" id="m-site-addr" placeholder="">
     </div>
     <button class="bsm bsm-a" onclick="saveSiteName()" style="width:100%;justify-content:center;height:42px;margin-bottom:10px;">追加</button>
     <div id="site-master-list"></div>
@@ -443,7 +458,7 @@ opacity:0;transition:all .25s;z-index:400;white-space:nowrap;pointer-events:none
   <div class="card">
     <div class="sec">集合場所テンプレ</div>
     <div style="display:flex;gap:7px;margin-bottom:8px;">
-      <input class="inp" id="m-meet" placeholder="例）若狭の駐車場" style="flex:1">
+      <input class="inp" id="m-meet" placeholder="" style="flex:1">
       <button class="bsm bsm-a" onclick="saveMeet()" style="height:42px;white-space:nowrap;">追加</button>
     </div>
     <div id="meet-master-list" style="display:flex;flex-wrap:wrap;gap:6px;"></div>
@@ -456,7 +471,7 @@ opacity:0;transition:all .25s;z-index:400;white-space:nowrap;pointer-events:none
   <div class="card">
     <div class="sec">車種テンプレ</div>
     <div style="display:flex;gap:7px;margin-bottom:8px;">
-      <input class="inp" id="m-car" placeholder="例）ハイエース" style="flex:1">
+      <input class="inp" id="m-car" placeholder="" style="flex:1">
       <button class="bsm bsm-a" onclick="saveCar()" style="height:42px;white-space:nowrap;">追加</button>
     </div>
     <div id="car-master-list" style="display:flex;flex-wrap:wrap;gap:6px;"></div>
@@ -469,7 +484,7 @@ opacity:0;transition:all .25s;z-index:400;white-space:nowrap;pointer-events:none
   <div class="card">
     <div class="sec">業務内容テンプレ</div>
     <div style="display:flex;gap:7px;margin-bottom:8px;">
-      <input class="inp" id="m-task" placeholder="例）吊り作業" style="flex:1">
+      <input class="inp" id="m-task" placeholder="" style="flex:1">
       <button class="bsm bsm-a" onclick="saveTask()" style="height:42px;white-space:nowrap;">追加</button>
     </div>
     <div id="task-master-list" style="display:flex;flex-wrap:wrap;gap:6px;"></div>
@@ -513,14 +528,14 @@ opacity:0;transition:all .25s;z-index:400;white-space:nowrap;pointer-events:none
     <input type="hidden" id="ew-id">
     <div class="row2" style="margin-bottom:6px;">
       <div><label class="lbl">氏名</label>
-        <input class="inp" id="ew-name" placeholder="氏名">
+        <input class="inp" id="ew-name" placeholder="">
       </div>
       <div><label class="lbl">読み仮名</label>
-        <input class="inp" id="ew-yomi" placeholder="例）はまもと">
+        <input class="inp" id="ew-yomi" placeholder="">
       </div>
     </div>
     <div class="fg" style="margin-bottom:12px;"><label class="lbl">電話番号</label>
-      <input type="tel" class="inp" id="ew-tel" placeholder="090-XXXX-XXXX">
+      <input type="tel" class="inp" id="ew-tel" placeholder="">
     </div>
     <button class="btn btn-a" onclick="saveEditWorker()" style="margin-bottom:8px;">保存する</button>
     <button class="btn btn-b" onclick="document.getElementById('modal-editworker').classList.remove('on')">閉じる</button>
@@ -537,14 +552,14 @@ opacity:0;transition:all .25s;z-index:400;white-space:nowrap;pointer-events:none
     <input type="hidden" id="econ-origname">
     <div class="row2" style="margin-bottom:6px;">
       <div><label class="lbl">担当者名</label>
-        <input class="inp" id="econ-name" placeholder="担当者名">
+        <input class="inp" id="econ-name" placeholder="">
       </div>
       <div><label class="lbl">読み仮名</label>
-        <input class="inp" id="econ-yomi" placeholder="例）たなか">
+        <input class="inp" id="econ-yomi" placeholder="">
       </div>
     </div>
     <div class="fg" style="margin-bottom:12px;"><label class="lbl">電話番号</label>
-      <input type="tel" class="inp" id="econ-tel" placeholder="080-XXXX-XXXX">
+      <input type="tel" class="inp" id="econ-tel" placeholder="">
     </div>
     <button class="btn btn-a" onclick="saveEditContact()" style="margin-bottom:8px;">保存する</button>
     <button class="btn btn-b" onclick="document.getElementById('modal-editcontact').classList.remove('on')">閉じる</button>
@@ -559,13 +574,13 @@ opacity:0;transition:all .25s;z-index:400;white-space:nowrap;pointer-events:none
     <div class="sheet-title">✏️ 取引先を編集</div>
     <input type="hidden" id="ec-id">
     <div class="fg"><label class="lbl">会社名</label>
-      <input class="inp" id="ec-name" placeholder="会社名">
+      <input class="inp" id="ec-name" placeholder="">
     </div>
     <div class="fg"><label class="lbl">読み仮名</label>
-      <input class="inp" id="ec-yomi" placeholder="例）あどゔぁん">
+      <input class="inp" id="ec-yomi" placeholder="">
     </div>
     <div class="fg"><label class="lbl">よく使う業務内容（カンマ区切り）</label>
-      <input class="inp" id="ec-tasks" placeholder="例）資材搬入,養生作業">
+      <input class="inp" id="ec-tasks" placeholder="">
     </div>
     <button class="btn btn-a" onclick="saveEditClient()" style="margin-bottom:8px;">保存する</button>
     <button class="btn btn-b" onclick="document.getElementById('modal-editclient').classList.remove('on')">閉じる</button>
@@ -580,13 +595,13 @@ opacity:0;transition:all .25s;z-index:400;white-space:nowrap;pointer-events:none
     <div class="sheet-title">✏️ 現場テンプレを編集</div>
     <input type="hidden" id="es-origname">
     <div class="fg"><label class="lbl">現場名</label>
-      <input class="inp" id="es-name" placeholder="例）リザンシーパーク">
+      <input class="inp" id="es-name" placeholder="">
     </div>
     <div class="fg"><label class="lbl">読み仮名</label>
-      <input class="inp" id="es-yomi" placeholder="例）りざん">
+      <input class="inp" id="es-yomi" placeholder="">
     </div>
     <div class="fg"><label class="lbl">住所</label>
-      <input class="inp" id="es-addr" placeholder="例）沖縄県恩納村恩納3111-1">
+      <input class="inp" id="es-addr" placeholder="">
     </div>
     <button class="btn btn-a" onclick="saveEditSite()" style="margin-bottom:8px;">保存する</button>
     <button class="btn btn-b" onclick="document.getElementById('modal-editsite').classList.remove('on')">閉じる</button>
@@ -601,10 +616,10 @@ opacity:0;transition:all .25s;z-index:400;white-space:nowrap;pointer-events:none
     <div class="sheet-title" id="addcontact-title">担当者を追加</div>
     <div class="row2" style="margin-bottom:10px;">
       <div><label class="lbl">担当者名</label>
-<div class="suggest-wrap"><input class="inp" id="ac-name" placeholder="例）田中" oninput="suggest(this,'contact')" autocomplete="off"><div class="suggest-list" id="sg-ac-name" style="display:none;"></div></div>
+<div class="suggest-wrap"><input class="inp" id="ac-name" placeholder="" oninput="suggest(this,'contact')" autocomplete="off"><div class="suggest-list" id="sg-ac-name" style="display:none;"></div></div>
       </div>
       <div><label class="lbl">電話番号</label>
-        <input type="tel" class="inp" id="ac-tel" placeholder="080-XXXX-XXXX">
+        <input type="tel" class="inp" id="ac-tel" placeholder="">
       </div>
     </div>
     <button class="btn btn-a" onclick="saveAddContact()" style="margin-bottom:8px;">追加する</button>
@@ -658,17 +673,7 @@ function switchTab(id,btn){
 // ════════════ 指示作成 ════════════
 
 // 集合場所テンプレ
-function buildMeetTemplates(){
-  const cont=document.getElementById('meet-templates');
-  cont.innerHTML='';
-  S.meets.forEach(m=>{
-    const el=document.createElement('button');
-    el.className='meet-pill';
-    el.textContent='📍 '+m;
-    el.onclick=()=>{ document.getElementById('f-meet').value=m; };
-    cont.appendChild(el);
-  });
-}
+function buildMeetTemplates(){ /* サジェスト方式に変更 */ }
 
 // 取引先セレクト
 function initClientSel(){
@@ -794,7 +799,8 @@ function buildWorkPills(){
 function collectForm(){
   const clientSel=document.getElementById('f-client');
   const clientId=parseInt(clientSel.value)||null;
-  const clientName=clientId ? clientSel.options[clientSel.selectedIndex].text : '';
+  const clientManual=document.getElementById('f-client-manual').value.trim();
+  const clientName=clientId ? clientSel.options[clientSel.selectedIndex].text : clientManual;
   let car='';
   document.querySelectorAll('input[name=car]').forEach(r=>{if(r.checked)car=r.value;});
   const works=[];
@@ -1098,22 +1104,7 @@ function saveSiteName(){
   persist(); buildSiteTemplates(); renderMaster(); toast('✓ '+name+' を追加しました');
 }
 function deleteSiteName(name){ confirmDelete(`「${name}」を現場名テンプレから削除します。`, ()=>{ S.sites=(S.sites||[]).filter(s=>(s.name||s)!==name); persist(); buildSiteTemplates(); renderMaster(); toast('削除しました'); }); }
-function buildSiteTemplates(){
-  const cont=document.getElementById('site-templates'); if(!cont) return;
-  cont.innerHTML='';
-  (S.sites||[]).forEach(s=>{
-    const name = s.name||s;
-    const addr = s.addr||'';
-    const el=document.createElement('button');
-    el.className='meet-pill';
-    el.textContent='🏗 '+name;
-    el.onclick=()=>{
-      document.getElementById('f-site').value=name;
-      if(addr) document.getElementById('f-addr').value=addr;
-    };
-    cont.appendChild(el);
-  });
-}
+function buildSiteTemplates(){ /* サジェスト方式に変更 */ }
 
 function saveMeet(){
   const v=document.getElementById('m-meet').value.trim(); if(!v) return;
@@ -1447,6 +1438,112 @@ function matchYomi(query, name, yomi){
   const qH = toHira(q); const qK = toKata(q);
   const targets = [name||'', yomi||'', toHira(yomi||''), toKata(yomi||'')];
   return targets.some(t=>t.includes(q)||t.includes(qH)||t.includes(qK));
+}
+
+
+// ════════ 現場名サジェスト ════════
+function suggestSite(inp){
+  const val = inp.value.trim();
+  const list = document.getElementById('sg-f-site');
+  const items = (S.sites||[]);
+  const hits = val
+    ? items.filter(s=>matchYomi(val, s.name||s, s.yomi||''))
+    : items;
+  if(hits.length===0){ list.style.display='none'; return; }
+  list.innerHTML='';
+  const safeVal = val.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');
+  hits.slice(0,8).forEach(s=>{
+    const name = s.name||s;
+    const item = document.createElement('div');
+    item.className='suggest-item';
+    const hi = val ? name.replace(new RegExp(safeVal,'g'),`<b>${val}</b>`) : name;
+    item.innerHTML=`${hi}${s.yomi?`<span style="font-size:11px;color:var(--t2);margin-left:6px;">${s.yomi}</span>`:''}${s.addr?`<span style="font-size:11px;color:var(--a2);margin-left:6px;">📍${s.addr}</span>`:''}`;
+    item.onmousedown=(e)=>{
+      e.preventDefault();
+      document.getElementById('f-site').value=name;
+      if(s.addr) document.getElementById('f-addr').value=s.addr;
+      list.style.display='none';
+    };
+    list.appendChild(item);
+  });
+  list.style.display='block';
+}
+
+// ════════ 集合場所サジェスト ════════
+function suggestMeet(inp){
+  const val = inp.value.trim();
+  const list = document.getElementById('sg-f-meet');
+  const hits = val
+    ? S.meets.filter(m=>m.includes(val))
+    : S.meets;
+  if(hits.length===0){ list.style.display='none'; return; }
+  list.innerHTML='';
+  const safeVal = val.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');
+  hits.forEach(m=>{
+    const item = document.createElement('div');
+    item.className='suggest-item';
+    item.innerHTML = val ? m.replace(new RegExp(safeVal,'g'),`<b>${val}</b>`) : m;
+    item.onmousedown=(e)=>{ e.preventDefault(); document.getElementById('f-meet').value=m; list.style.display='none'; };
+    list.appendChild(item);
+  });
+  list.style.display='block';
+}
+
+
+// ════════ 取引先 直接入力 ════════
+function onClientManualInput(inp){
+  const val = inp.value.trim();
+  // セレクトをリセット
+  document.getElementById('f-client').value = '';
+  clearContactSel();
+  document.getElementById('contact-area').style.display = 'none';
+  document.getElementById('manual-contact').style.display = 'grid';
+
+  // サジェスト表示
+  const list = document.getElementById('sg-f-client-manual');
+  const hits = val
+    ? S.clients.filter(c=>matchYomi(val, c.name, c.yomi||''))
+    : S.clients;
+  if(hits.length===0){ list.style.display='none'; return; }
+  list.innerHTML='';
+  const safeVal = val.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');
+  hits.slice(0,6).forEach(cl=>{
+    const item=document.createElement('div');
+    item.className='suggest-item';
+    const hi = val ? cl.name.replace(new RegExp(safeVal,'g'),`<b>${val}</b>`) : cl.name;
+    item.innerHTML=`${hi}${cl.yomi?`<span style="font-size:11px;color:var(--t2);margin-left:6px;">${cl.yomi}</span>`:''}`;
+    item.onmousedown=(e)=>{
+      e.preventDefault();
+      inp.value=cl.name;
+      list.style.display='none';
+      // 選択肢にある取引先なら担当者も表示
+      document.getElementById('f-client').value=cl.id;
+      onClientChange();
+    };
+    list.appendChild(item);
+  });
+  list.style.display='block';
+}
+
+// ════════ 作業員 直接入力追加 ════════
+function addWorkerManual(){
+  const name = document.getElementById('worker-manual').value.trim();
+  if(!name) return;
+  // 既存作業員に同名があれば使う
+  const existing = S.workers.find(w=>w.name===name);
+  if(existing){
+    addWorker(existing.id);
+  } else {
+    // 一時的なIDで追加（マスタには登録しない）
+    const tmpId = 'tmp_'+Date.now();
+    if(!selW.includes(tmpId)){
+      selW.push(tmpId);
+      // 一時的にS.workersに追加して表示（保存はしない）
+      S.workers.push({id:tmpId, name, yomi:'', tel:'', _tmp:true});
+      renderWorkerChips();
+    }
+  }
+  document.getElementById('worker-manual').value='';
 }
 
 // ── INIT ──
