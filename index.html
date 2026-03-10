@@ -274,6 +274,39 @@ font-family:inherit;cursor:pointer;transition:all .15s;text-align:center;}
 .mi-detail{display:none;}
 .mi-detail.on{display:block;}
 
+/* SITE DEFAULTS SUGGEST */
+.sd-overlay{position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:250;
+display:none;align-items:flex-end;justify-content:center;}
+.sd-overlay.on{display:flex;}
+.sd-sheet{background:var(–s1);border-radius:18px 18px 0 0;width:100%;
+max-width:430px;padding:16px;max-height:75vh;overflow-y:auto;
+animation:sheetUp .25s cubic-bezier(.34,1.56,.64,1);}
+.sd-title{font-size:15px;font-weight:700;margin-bottom:4px;}
+.sd-sub{font-size:12px;color:var(–t2);margin-bottom:14px;}
+.sd-client-item{display:flex;align-items:center;gap:10px;
+background:var(–s2);border:1px solid var(–border);
+border-radius:10px;padding:11px 13px;margin-bottom:7px;cursor:pointer;
+transition:all .15s;}
+.sd-client-item:active{border-color:var(–a);background:rgba(240,180,41,.08);}
+.sd-client-rank{width:24px;height:24px;border-radius:6px;
+display:flex;align-items:center;justify-content:center;
+font-size:11px;font-weight:900;flex-shrink:0;}
+.sd-rank-1{background:var(–a);color:#1a1c24;}
+.sd-rank-2{background:var(–s3);color:var(–t1);border:1px solid var(–border);}
+.sd-rank-3{background:var(–s3);color:var(–t2);border:1px solid var(–border);}
+.sd-client-name{font-size:14px;font-weight:700;flex:1;color:var(–t1);}
+.sd-client-count{font-size:11px;color:var(–t2);}
+.sd-bar-wrap{height:4px;background:var(–s3);border-radius:2px;margin-top:5px;}
+.sd-bar{height:4px;background:var(–a);border-radius:2px;transition:width .3s;}
+.sd-works{display:flex;flex-wrap:wrap;gap:4px;margin-top:6px;}
+.sd-work-tag{display:inline-flex;padding:2px 8px;border-radius:20px;
+font-size:11px;font-weight:600;
+background:rgba(96,200,245,.12);color:var(–a2);
+border:1px solid rgba(96,200,245,.25);}
+.sd-skip{width:100%;padding:11px;background:var(–s2);border:1px solid var(–border);
+border-radius:9px;color:var(–t2);font-size:13px;font-weight:600;
+font-family:inherit;cursor:pointer;margin-top:4px;}
+
 .toast{position:fixed;bottom:18px;left:50%;
 transform:translateX(-50%) translateY(14px);
 background:var(–green);color:#052e16;padding:8px 16px;
@@ -314,7 +347,8 @@ opacity:0;transition:all .25s;z-index:400;white-space:nowrap;pointer-events:none
       <div class="suggest-wrap">
         <span class="wsearch-icon">🔍</span>
         <input class="wsearch-inp" id="f-site" placeholder=""
-          oninput="suggestSite(this)" onfocus="suggestSite(this)" autocomplete="off">
+          oninput="suggestSite(this)" onfocus="suggestSite(this)"
+          onblur="applySiteDefaults(this.value.trim())" autocomplete="off">
         <div class="suggest-list" id="sg-f-site" style="display:none;"></div>
       </div>
     </div>
@@ -720,6 +754,18 @@ opacity:0;transition:all .25s;z-index:400;white-space:nowrap;pointer-events:none
     </div>
     <button class="btn btn-a" onclick="saveAddContact()" style="margin-bottom:8px;">追加する</button>
     <button class="btn btn-b" onclick="document.getElementById('modal-addcontact').classList.remove('on')">閉じる</button>
+  </div>
+</div>
+
+<!-- 現場スマートサジェストシート -->
+
+<div class="sd-overlay" id="sd-overlay" onclick="if(event.target===this)closeSdOverlay()">
+  <div class="sd-sheet">
+    <div class="sheet-handle"></div>
+    <div class="sd-title" id="sd-title">過去の使用データ</div>
+    <div class="sd-sub" id="sd-sub"></div>
+    <div id="sd-client-list"></div>
+    <button class="sd-skip" onclick="closeSdOverlay()">このまま手入力する</button>
   </div>
 </div>
 
@@ -1653,6 +1699,7 @@ function suggestSite(inp){
       document.getElementById('f-site').value=name;
       if(s.addr) document.getElementById('f-addr').value=s.addr;
       list.style.display='none';
+      setTimeout(()=>applySiteDefaults(name), 100);
     };
     list.appendChild(item);
   });
@@ -1822,6 +1869,106 @@ function addWorkerTmp(){
   }
   document.getElementById('worker-tmp').value='';
 }
+
+// ════════ 現場スマートサジェスト ════════
+function getSiteStats(siteName){
+  const siteFile = S.history.find(h=>h.site===siteName);
+  if(!siteFile || !siteFile.entries.length) return null;
+  const entries = siteFile.entries;
+  const total = entries.length;
+
+  // 取引先ごとの回数・作業内容を集計
+  const clientMap = {}; // {clientName: {count, works:{w:cnt}}}
+  entries.forEach(e=>{
+    const cn = e.clientName||'（未設定）';
+    if(!clientMap[cn]) clientMap[cn] = {count:0, works:{}, clientId:e.clientId||null};
+    clientMap[cn].count++;
+    (e.works||[]).forEach(w=>{
+      clientMap[cn].works[w] = (clientMap[cn].works[w]||0)+1;
+    });
+  });
+
+  // 回数降順でソート
+  const sorted = Object.entries(clientMap)
+    .sort((a,b)=>b[1].count-a[1].count)
+    .map(([name,data],i)=>({
+      name, count:data.count, total,
+      pct: Math.round(data.count/total*100),
+      clientId: data.clientId,
+      topWorks: Object.entries(data.works)
+        .sort((a,b)=>b[1]-a[1])
+        .filter(([,cnt])=>cnt/data.count>=0.4)
+        .map(([w])=>w),
+      rank: i+1
+    }));
+
+  return sorted;
+}
+
+function applySiteDefaults(siteName){
+  if(!siteName) return;
+  const stats = getSiteStats(siteName);
+  if(!stats || stats.length===0) return;
+
+  // 取引先が1種類だけなら自動セット
+  if(stats.length===1){
+    applyClientDefaults(stats[0]);
+    return;
+  }
+
+  // 複数業者 → シートを表示
+  showSdSheet(siteName, stats);
+}
+
+function showSdSheet(siteName, stats){
+  document.getElementById('sd-title').textContent = `「${siteName}」の過去データ`;
+  document.getElementById('sd-sub').textContent = `${stats.reduce((s,x)=>s+x.count,0)}回の履歴から取引先を選んでください`;
+  const list = document.getElementById('sd-client-list');
+  list.innerHTML='';
+  const maxCount = stats[0].count;
+  stats.forEach((s,i)=>{
+    const rankClass = i===0?'sd-rank-1':i===1?'sd-rank-2':'sd-rank-3';
+    const rankLabel = i===0?'1位':i===1?'2位':'3位';
+    const barW = Math.round(s.count/maxCount*100);
+    const el = document.createElement('div');
+    el.className='sd-client-item';
+    el.innerHTML=`
+      <div class="sd-client-rank ${rankClass}">${rankLabel}</div>
+      <div style="flex:1;min-width:0;">
+        <div style="display:flex;align-items:center;justify-content:space-between;">
+          <span class="sd-client-name">${s.name}</span>
+          <span class="sd-client-count">${s.count}回（${s.pct}%）</span>
+        </div>
+        <div class="sd-bar-wrap"><div class="sd-bar" style="width:${barW}%"></div></div>
+        ${s.topWorks.length?`<div class="sd-works">${s.topWorks.map(w=>`<span class="sd-work-tag">${w}</span>`).join('')}</div>`:''}
+      </div>`;
+    el.onclick=()=>{ applyClientDefaults(s); closeSdOverlay(); };
+    list.appendChild(el);
+  });
+  document.getElementById('sd-overlay').classList.add('on');
+}
+
+function applyClientDefaults(s){
+  const inp = document.getElementById('f-client-manual');
+  if(inp){ inp.value = s.name; }
+  if(s.clientId){
+    document.getElementById('f-client').value = s.clientId;
+    onClientChange();
+  }
+  // 作業内容（未選択の場合のみ）
+  const anyChecked = document.querySelectorAll('#work-pills .pi:checked').length>0;
+  if(!anyChecked && s.topWorks.length){
+    document.querySelectorAll('#work-pills .pi').forEach(cb=>{
+      cb.checked = s.topWorks.includes(cb.value);
+    });
+  }
+  toast(`✓「${s.name}」のデータを反映しました`);
+}
+
+function closeSdOverlay(){
+  document.getElementById('sd-overlay').classList.remove('on');
+}
+
 // ── INIT ──
 initClientSel(); initWorkerSel();
 buildCarPills(); buildWorkPills(); buildMeetTemplates(); buildSiteTemplates();
