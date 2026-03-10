@@ -1,0 +1,1458 @@
+<!DOCTYPE html>
+
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>ゆいナビ</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;500;700;900&family=IBM+Plex+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#0d0f14;--s1:#141720;--s2:#1c2030;--s3:#242840;
+  --border:#2a2f42;--a:#f0b429;--a2:#38bdf8;
+  --green:#34d399;--red:#f87171;--purple:#a78bfa;
+  --t1:#eef0f6;--t2:#7c86a0;--t3:#3d4460;
+}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+body{background:var(--bg);color:var(--t1);font-family:'Noto Sans JP',sans-serif;
+  max-width:430px;margin:0 auto;min-height:100vh;overflow-x:hidden}
+
+/* HEADER */
+.hdr{background:var(–s1);border-bottom:1px solid var(–border);padding:11px 16px;
+position:sticky;top:0;z-index:50;display:flex;align-items:center;justify-content:space-between}
+.hdr-logo{display:flex;align-items:center;gap:9px}
+.hdr-mark{width:32px;height:32px;background:var(–a);border-radius:8px;
+display:flex;align-items:center;justify-content:center;
+font-size:17px;font-weight:900;color:#0d0f14;flex-shrink:0}
+.hdr-name{font-size:16px;font-weight:700;letter-spacing:-0.3px}
+.hdr-date{font-family:‘IBM Plex Mono’,monospace;font-size:11px;color:var(–t2)}
+
+/* TABS */
+.tabs{display:grid;grid-template-columns:1fr 1fr 1fr;
+background:var(–s1);border-bottom:1px solid var(–border)}
+.tab{padding:10px 0;background:none;border:none;font-family:inherit;
+font-size:12px;font-weight:600;color:var(–t2);cursor:pointer;
+border-bottom:2px solid transparent;transition:all .2s;white-space:nowrap}
+.tab.on{color:var(–a);border-bottom-color:var(–a)}
+
+/* SCREENS */
+.scr{display:none;padding:13px 13px 48px}
+.scr.on{display:block;animation:fadeUp .18s ease}
+@keyframes fadeUp{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:translateY(0)}}
+
+/* CARDS */
+.card{background:var(–s1);border:1px solid var(–border);border-radius:13px;padding:13px;margin-bottom:9px}
+.sec{font-size:10px;font-weight:700;color:var(–a);letter-spacing:2px;
+text-transform:uppercase;margin-bottom:9px;display:flex;align-items:center;gap:5px}
+.sec::before{content:’’;width:3px;height:10px;background:var(–a);border-radius:2px}
+
+/* FORM */
+.fg{margin-bottom:11px}.fg:last-child{margin-bottom:0}
+.lbl{display:block;font-size:10px;color:var(–t2);font-weight:600;letter-spacing:.5px;margin-bottom:4px}
+.inp,.sel,.ta{width:100%;background:var(–bg);border:1px solid var(–border);
+border-radius:8px;padding:10px 12px;color:var(–t1);font-size:15px;
+font-family:inherit;outline:none;transition:border-color .15s;-webkit-appearance:none}
+.inp:focus,.sel:focus,.ta:focus{border-color:var(–a)}
+.sel{background-image:url(“data:image/svg+xml,%3Csvg xmlns=‘http://www.w3.org/2000/svg’ width=‘10’ height=‘6’%3E%3Cpath d=‘M0 0l5 6 5-6z’ fill=’%237c86a0’/%3E%3C/svg%3E”);
+background-repeat:no-repeat;background-position:right 12px center;
+padding-right:32px;cursor:pointer}
+.sel option{background:var(–s2)}
+.ta{resize:none;min-height:80px;line-height:1.7}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:9px}
+
+/* MAP BTN */
+.mapbtn{display:flex;align-items:center;gap:6px;
+background:rgba(56,189,248,.1);border:1px solid rgba(56,189,248,.25);
+border-radius:7px;padding:7px 11px;color:var(–a2);font-size:12px;font-weight:600;
+cursor:pointer;margin-top:5px;width:100%;font-family:inherit;transition:opacity .15s}
+.mapbtn:active{opacity:.7}
+
+/* PILLS */
+.pills{display:flex;flex-wrap:wrap;gap:6px}
+.pi{display:none}
+.pl{display:inline-block;padding:6px 12px;background:var(–bg);border:1px solid var(–border);
+border-radius:20px;font-size:13px;color:var(–t2);cursor:pointer;transition:all .15s;user-select:none}
+.pi:checked+.pl{background:var(–a);border-color:var(–a);color:#0d0f14;font-weight:700}
+
+/* CHIPS */
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px;min-height:4px}
+.chip{display:flex;align-items:center;gap:4px;background:var(–s2);
+border:1px solid var(–border);border-radius:20px;padding:4px 10px;font-size:13px}
+.chip-x{cursor:pointer;color:var(–t3);font-size:14px;line-height:1;transition:color .1s}
+.chip-x:hover{color:var(–red)}
+
+/* BUTTONS */
+.btn{display:block;width:100%;padding:13px;border:none;border-radius:10px;
+font-size:15px;font-weight:700;font-family:inherit;cursor:pointer;transition:all .15s}
+.btn-a{background:var(–a);color:#0d0f14}
+.btn-a:active{transform:scale(.97);opacity:.9}
+.btn-b{background:var(–s2);color:var(–t1);border:1px solid var(–border)}
+.bsm{display:inline-flex;align-items:center;gap:4px;padding:6px 12px;border:none;
+border-radius:7px;font-size:12px;font-weight:600;font-family:inherit;cursor:pointer;transition:all .15s}
+.bsm-a{background:var(–a);color:#0d0f14}
+.bsm-g{background:var(–s2);color:var(–t2);border:1px solid var(–border)}
+.bsm-r{background:rgba(248,113,113,.12);color:var(–red);border:1px solid rgba(248,113,113,.25)}
+.bsm-p{background:rgba(167,139,250,.12);color:var(–purple);border:1px solid rgba(167,139,250,.25)}
+
+/* CONTACT CARDS */
+.ccard{display:flex;align-items:center;justify-content:space-between;
+background:var(–s2);border:1px solid var(–border);border-radius:9px;padding:9px 12px;margin-bottom:6px}
+.ccard.sel-c{background:rgba(240,180,41,.08);border-color:rgba(240,180,41,.4)}
+.ccard-name{font-size:14px;font-weight:700;margin-bottom:1px}
+.ccard-tel{font-size:12px;color:var(–t2)}
+
+/* WORKER COUNT BADGE */
+.w-count{
+display:inline-flex;align-items:center;justify-content:center;
+background:var(–a);color:#0d0f14;border-radius:20px;
+font-size:12px;font-weight:900;padding:2px 10px;margin-left:8px;
+}
+
+/* MODAL */
+.overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.88);
+z-index:200;align-items:flex-end;justify-content:center}
+.overlay.on{display:flex}
+.sheet{background:var(–s1);border-radius:18px 18px 0 0;width:100%;
+max-width:430px;padding:16px;max-height:90vh;overflow-y:auto;
+animation:sheetUp .25s cubic-bezier(.34,1.56,.64,1)}
+@keyframes sheetUp{from{transform:translateY(100%)}to{transform:translateY(0)}}
+.sheet-handle{width:32px;height:3px;background:var(–border);border-radius:2px;margin:0 auto 13px}
+.sheet-title{font-size:16px;font-weight:700;margin-bottom:13px}
+
+/* LINE PREVIEW */
+.preview{background:#0f1a2e;border:1px solid #1e3a5f;border-radius:10px;padding:14px;
+font-size:14px;line-height:2.1;white-space:pre-wrap;color:#bfdbfe;
+font-family:inherit;position:relative}
+.copy-fab{position:absolute;top:9px;right:9px;background:var(–a);border:none;
+border-radius:7px;padding:5px 12px;font-size:12px;font-weight:700;
+color:#0d0f14;cursor:pointer;font-family:inherit}
+
+/* HISTORY ITEMS */
+.hitem{background:var(–s1);border:1px solid var(–border);border-radius:12px;
+padding:13px;margin-bottom:9px;cursor:pointer;transition:border-color .15s}
+.hitem:active{border-color:var(–a)}
+.hitem-top{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:7px}
+.hitem-name{font-size:15px;font-weight:700}
+.hitem-date{font-family:‘IBM Plex Mono’,monospace;font-size:11px;color:var(–t2);
+background:var(–s2);border:1px solid var(–border);border-radius:6px;padding:2px 8px}
+.hitem-row{font-size:12px;color:var(–t2);margin-top:3px;display:flex;align-items:center;gap:5px}
+.hitem-row span{color:var(–t1)}
+.hitem-actions{display:flex;gap:6px;margin-top:9px;flex-wrap:wrap}
+
+/* HISTORY DETAIL */
+.hd-section{margin-bottom:12px}
+.hd-label{font-size:10px;color:var(–a);font-weight:700;letter-spacing:1.5px;
+text-transform:uppercase;margin-bottom:6px}
+.hd-value{font-size:14px;line-height:1.8}
+.hd-worker-chip{display:inline-flex;align-items:center;
+background:var(–s2);border:1px solid var(–border);
+border-radius:20px;padding:3px 10px;font-size:13px;margin:2px}
+
+/* MASTER ITEMS */
+.mitem{background:var(–s1);border:1px solid var(–border);border-radius:10px;padding:11px 12px;margin-bottom:7px}
+.mitem-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:3px}
+.mitem-name{font-size:14px;font-weight:700}
+.mitem-sub{font-size:12px;color:var(–t2);margin-top:2px}
+.tag{display:inline-flex;align-items:center;padding:2px 8px;border-radius:20px;
+font-size:11px;font-weight:700;margin:2px}
+.tag-b{background:rgba(56,189,248,.13);color:var(–a2);border:1px solid rgba(56,189,248,.25)}
+
+/* MEET TEMPLATE PILLS */
+.meet-pill{display:inline-flex;align-items:center;gap:4px;
+background:var(–s2);border:1px solid var(–border);
+border-radius:20px;padding:5px 11px;font-size:13px;margin:3px;cursor:pointer;transition:all .15s}
+.meet-pill:active{background:var(–a);border-color:var(–a);color:#0d0f14}
+
+/* DIVIDER */
+.div{height:1px;background:var(–border);margin:11px 0}
+
+/* EMPTY */
+.empty{text-align:center;padding:32px 20px;color:var(–t3)}
+.empty-icon{font-size:34px;margin-bottom:8px}
+.empty p{font-size:13px}
+
+/* TOAST */
+
+/* CONFIRM DIALOG */
+.confirm-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.75);
+z-index:300;align-items:center;justify-content:center;padding:20px}
+.confirm-overlay.on{display:flex}
+.confirm-box{background:var(–s1);border:1px solid var(–border);border-radius:16px;
+padding:22px 20px;width:100%;max-width:320px;text-align:center}
+.confirm-title{font-size:15px;font-weight:700;margin-bottom:6px}
+.confirm-msg{font-size:13px;color:var(–t2);margin-bottom:20px;line-height:1.6}
+.confirm-btns{display:flex;gap:10px}
+.confirm-btns .btn{padding:11px}
+
+/* SUGGEST DROPDOWN */
+.suggest-wrap{position:relative}
+.suggest-list{position:absolute;top:100%;left:0;right:0;
+background:var(–s2);border:1px solid var(–a);border-radius:9px;
+z-index:100;overflow:hidden;margin-top:3px;
+box-shadow:0 8px 24px rgba(0,0,0,.4)}
+.suggest-item{padding:10px 13px;font-size:14px;cursor:pointer;
+border-bottom:1px solid var(–border);transition:background .1s}
+.suggest-item:last-child{border-bottom:none}
+.suggest-item:active{background:rgba(240,180,41,.15)}
+.suggest-item b{color:var(–a)}
+
+/* WORKER SEARCH */
+.wsearch-wrap{position:relative}
+.wsearch-inp{width:100%;background:var(–bg);border:1px solid var(–border);
+border-radius:8px;padding:10px 12px 10px 36px;color:var(–t1);font-size:15px;
+font-family:inherit;outline:none;transition:border-color .15s}
+.wsearch-inp:focus{border-color:var(–a)}
+.wsearch-icon{position:absolute;left:12px;top:50%;transform:translateY(-50%);
+font-size:15px;pointer-events:none;}
+.wsearch-dropdown{position:absolute;top:calc(100% + 4px);left:0;right:0;
+background:var(–s2);border:1px solid var(–a);border-radius:10px;
+z-index:100;overflow:hidden;max-height:220px;overflow-y:auto;
+box-shadow:0 8px 24px rgba(0,0,0,.4);display:none;}
+.wsearch-dropdown.on{display:block}
+.wsearch-item{padding:11px 13px;font-size:14px;cursor:pointer;
+border-bottom:1px solid var(–border);display:flex;align-items:center;gap:8px;transition:background .1s}
+.wsearch-item:last-child{border-bottom:none}
+.wsearch-item:active{background:rgba(240,180,41,.15)}
+.wsearch-item b{color:var(–a)}
+.wsearch-item .witem-tel{font-size:11px;color:var(–t2);margin-left:auto}
+.wsearch-empty{padding:14px 13px;font-size:13px;color:var(–t3);text-align:center}
+
+.toast{position:fixed;bottom:18px;left:50%;
+transform:translateX(-50%) translateY(14px);
+background:var(–green);color:#052e16;padding:8px 16px;
+border-radius:20px;font-size:13px;font-weight:700;
+opacity:0;transition:all .25s;z-index:400;white-space:nowrap;pointer-events:none}
+.toast.on{opacity:1;transform:translateX(-50%) translateY(0)}
+</style>
+
+</head>
+<body>
+
+<!-- HEADER -->
+
+<div class="hdr">
+  <div class="hdr-logo">
+    <div class="hdr-mark">ゆ</div>
+    <div><div class="hdr-name">ゆいナビ</div></div>
+  </div>
+  <div class="hdr-date" id="hdr-date"></div>
+</div>
+
+<!-- TABS -->
+
+<div class="tabs">
+  <button class="tab on"  onclick="switchTab('create',this)">✏️ 指示作成</button>
+  <button class="tab"     onclick="switchTab('history',this)">📁 現場履歴</button>
+  <button class="tab"     onclick="switchTab('master',this)">⚙️ マスタ</button>
+</div>
+
+<!-- ══════════ 指示作成 ══════════ -->
+
+<div id="scr-create" class="scr on">
+
+  <div class="card">
+    <div class="sec">現場情報</div>
+    <div class="fg">
+      <label class="lbl">現場名</label>
+      <div id="site-templates" style="display:flex;flex-wrap:wrap;gap:4px;margin-bottom:6px;"></div>
+      <input class="inp" id="f-site" placeholder="例）フォーシーズンホテル">
+    </div>
+    <div class="fg">
+      <label class="lbl">現場住所</label>
+      <input class="inp" id="f-addr" placeholder="例）沖縄県国頭郡恩納村恩納3111-1">
+
+```
+</div>
+<div class="row2">
+  <div class="fg"><label class="lbl">作業日</label>
+    <input type="date" class="inp" id="f-date">
+  </div>
+  <div class="fg"><label class="lbl">集合時間</label>
+    <input type="time" class="inp" id="f-time" value="07:50">
+  </div>
+</div>
+<div class="fg">
+  <label class="lbl">集合場所</label>
+  <!-- テンプレ選択ボタン群 -->
+  <div id="meet-templates" style="display:flex;flex-wrap:wrap;gap:4px;margin-bottom:6px;"></div>
+  <input class="inp" id="f-meet" placeholder="例）若狭の駐車場">
+</div>
+<div class="fg"><label class="lbl">ゼネコン（任意）</label>
+  <input class="inp" id="f-gen" placeholder="">
+</div>
+```
+
+  </div>
+
+  <div class="card">
+    <div class="sec">取引先・担当者</div>
+    <div class="fg">
+      <label class="lbl">取引先</label>
+      <select class="sel" id="f-client" onchange="onClientChange()">
+        <option value="">選択してください</option>
+      </select>
+    </div>
+    <div id="contact-area" style="display:none;">
+      <label class="lbl">担当者を選択</label>
+      <div id="contact-list"></div>
+    </div>
+    <div id="selected-contact" style="display:none;">
+      <label class="lbl">選択中の担当者</label>
+      <div class="ccard sel-c">
+        <div>
+          <div class="ccard-name" id="sc-name"></div>
+          <div class="ccard-tel"  id="sc-tel"></div>
+        </div>
+        <button class="bsm bsm-g" onclick="clearContactSel()">変更</button>
+      </div>
+    </div>
+    <div id="manual-contact" class="row2">
+      <div class="fg"><label class="lbl">担当者名</label>
+        <div class="suggest-wrap"><input class="inp" id="f-cname" placeholder="例）島袋さん" oninput="suggest(this,'contact')" autocomplete="off"><div class="suggest-list" id="sg-f-cname" style="display:none;"></div></div>
+      </div>
+      <div class="fg"><label class="lbl">電話番号</label>
+        <input type="tel" class="inp" id="f-ctel" placeholder="080-XXXX-XXXX">
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="sec">
+      作業員
+      <span class="w-count" id="worker-count" style="display:none;"></span>
+    </div>
+    <div class="chips" id="worker-chips"></div>
+    <!-- 検索追加 -->
+    <div class="wsearch-wrap" style="margin-bottom:8px;">
+      <span class="wsearch-icon">🔍</span>
+      <input class="wsearch-inp" id="worker-search" placeholder="名前で検索して追加..."
+        oninput="workerSearchInput(this)" onfocus="workerSearchInput(this)"
+        autocomplete="off">
+      <div class="wsearch-dropdown" id="worker-dropdown"></div>
+    </div>
+    <!-- セレクトでも追加できる -->
+    <select class="sel" id="worker-sel" onchange="addWorker(this.value)">
+      <option value="">リストから選んで追加</option>
+    </select>
+  </div>
+
+  <div class="card">
+    <div class="sec">車種</div>
+    <div class="pills" id="car-pills"></div>
+  </div>
+
+  <div class="card">
+    <div class="sec">業務内容</div>
+    <div class="pills" id="work-pills"></div>
+  </div>
+
+  <div class="card">
+    <div class="sec">備考・注意事項</div>
+    <textarea class="ta" id="f-note" placeholder="安全帯持参・入退場ルートなど自由に入力"></textarea>
+  </div>
+
+<button class="btn btn-a" onclick="generate()" style="margin-bottom:8px;">📋 LINE指示文を生成</button>
+<button class="btn btn-b" onclick="saveHistory()">💾 現場を履歴に保存</button>
+
+</div>
+
+<!-- ══════════ 現場履歴 ══════════ -->
+
+<div id="scr-history" class="scr">
+  <div id="history-list"></div>
+</div>
+
+<!-- ══════════ マスタ管理 ══════════ -->
+
+<div id="scr-master" class="scr">
+
+  <!-- 取引先 -->
+
+  <div class="card">
+    <div class="sec">取引先を登録</div>
+    <div class="fg"><label class="lbl">会社名</label>
+      <div class="suggest-wrap">
+        <input class="inp" id="m-cname" placeholder="例）アドヴァン" oninput="suggest(this,'client')" autocomplete="off">
+        <div class="suggest-list" id="sg-m-cname" style="display:none;"></div>
+      </div>
+    </div>
+    <div class="fg"><label class="lbl">読み仮名</label>
+      <input class="inp" id="m-cyomi" placeholder="例）あどゔぁん">
+    </div>
+    <div class="fg"><label class="lbl">よく使う業務内容（カンマ区切り）</label>
+      <input class="inp" id="m-ctasks" placeholder="例）資材搬入,養生作業">
+    </div>
+    <div class="div"></div>
+    <div style="font-size:10px;color:var(--t2);font-weight:700;letter-spacing:.5px;margin-bottom:7px;">担当者（複数登録可）</div>
+    <div id="m-contacts-preview" style="margin-bottom:7px;"></div>
+    <div class="row2" style="margin-bottom:7px;">
+<div class="suggest-wrap"><input class="inp" id="m-pname" placeholder="担当者名" oninput="suggest(this,'contact')" autocomplete="off"><div class="suggest-list" id="sg-m-pname" style="display:none;"></div></div>
+      <input type="tel" class="inp" id="m-ptel" placeholder="電話番号">
+    </div>
+    <button class="bsm bsm-g" onclick="addPerson()" style="width:100%;justify-content:center;margin-bottom:9px;">＋ 担当者を追加</button>
+    <button class="btn btn-a" onclick="saveClient()">取引先を登録</button>
+  </div>
+  <div id="client-master-list"></div>
+
+  <div class="div"></div>
+
+  <!-- 作業員 -->
+
+  <div class="card">
+    <div class="sec">作業員を登録</div>
+    <div class="row2" style="margin-bottom:8px;">
+      <div><label class="lbl">氏名</label>
+        <input class="inp" id="m-wname" placeholder="例）濱元">
+      </div>
+      <div><label class="lbl">読み仮名</label>
+        <input class="inp" id="m-wyomi" placeholder="例）はまもと">
+      </div>
+    </div>
+    <div class="fg" style="margin-bottom:9px;"><label class="lbl">電話番号</label>
+      <input type="tel" class="inp" id="m-wtel" placeholder="090-XXXX-XXXX">
+    </div>
+    <button class="btn btn-a" onclick="saveWorker()">作業員を登録</button>
+    <div id="worker-master-list" style="margin-top:9px;"></div>
+  </div>
+
+  <div class="div"></div>
+
+  <!-- 現場名テンプレ -->
+
+  <div class="card">
+    <div class="sec">現場名テンプレ</div>
+    <div class="row2">
+      <div class="fg"><label class="lbl">現場名</label>
+        <input class="inp" id="m-site" placeholder="例）リザンシーパーク">
+      </div>
+      <div class="fg"><label class="lbl">読み仮名</label>
+        <input class="inp" id="m-syomi" placeholder="例）りざん">
+      </div>
+    </div>
+    <div class="fg"><label class="lbl">住所</label>
+      <input class="inp" id="m-site-addr" placeholder="例）沖縄県国頭郡恩納村恩納3111-1">
+    </div>
+    <button class="bsm bsm-a" onclick="saveSiteName()" style="width:100%;justify-content:center;height:42px;margin-bottom:10px;">追加</button>
+    <div id="site-master-list"></div>
+  </div>
+
+  <div class="div"></div>
+
+  <!-- 集合場所テンプレ -->
+
+  <div class="card">
+    <div class="sec">集合場所テンプレ</div>
+    <div style="display:flex;gap:7px;margin-bottom:8px;">
+      <input class="inp" id="m-meet" placeholder="例）若狭の駐車場" style="flex:1">
+      <button class="bsm bsm-a" onclick="saveMeet()" style="height:42px;white-space:nowrap;">追加</button>
+    </div>
+    <div id="meet-master-list" style="display:flex;flex-wrap:wrap;gap:6px;"></div>
+  </div>
+
+  <div class="div"></div>
+
+  <!-- 車種 -->
+
+  <div class="card">
+    <div class="sec">車種テンプレ</div>
+    <div style="display:flex;gap:7px;margin-bottom:8px;">
+      <input class="inp" id="m-car" placeholder="例）ハイエース" style="flex:1">
+      <button class="bsm bsm-a" onclick="saveCar()" style="height:42px;white-space:nowrap;">追加</button>
+    </div>
+    <div id="car-master-list" style="display:flex;flex-wrap:wrap;gap:6px;"></div>
+  </div>
+
+  <div class="div"></div>
+
+  <!-- 業務内容 -->
+
+  <div class="card">
+    <div class="sec">業務内容テンプレ</div>
+    <div style="display:flex;gap:7px;margin-bottom:8px;">
+      <input class="inp" id="m-task" placeholder="例）吊り作業" style="flex:1">
+      <button class="bsm bsm-a" onclick="saveTask()" style="height:42px;white-space:nowrap;">追加</button>
+    </div>
+    <div id="task-master-list" style="display:flex;flex-wrap:wrap;gap:6px;"></div>
+  </div>
+
+</div>
+
+<!-- ══ LINE モーダル ══ -->
+
+<div class="overlay" id="modal-line" onclick="closeOverlay('modal-line',event)">
+  <div class="sheet">
+    <div class="sheet-handle"></div>
+    <div class="sheet-title">📋 LINE指示文</div>
+    <div style="position:relative">
+      <div class="preview" id="preview-text"></div>
+      <button class="copy-fab" onclick="copyText()">コピー</button>
+    </div>
+    <button class="btn btn-b" onclick="document.getElementById('modal-line').classList.remove('on')" style="margin-top:11px;">閉じる</button>
+  </div>
+</div>
+
+<!-- 削除確認ダイアログ -->
+
+<div class="confirm-overlay" id="confirm-overlay">
+  <div class="confirm-box">
+    <div class="confirm-title" id="confirm-title">本当に削除しますか？</div>
+    <div class="confirm-msg" id="confirm-msg"></div>
+    <div class="confirm-btns">
+      <button class="btn btn-b" onclick="confirmCancel()" style="flex:1">キャンセル</button>
+      <button class="btn btn-a" id="confirm-ok" style="flex:1;background:var(--red);color:#fff;">削除する</button>
+    </div>
+  </div>
+</div>
+
+<!-- 作業員編集モーダル -->
+
+<div class="overlay" id="modal-editworker" onclick="closeOverlay('modal-editworker',event)">
+  <div class="sheet">
+    <div class="sheet-handle"></div>
+    <div class="sheet-title">✏️ 作業員を編集</div>
+    <input type="hidden" id="ew-id">
+    <div class="row2" style="margin-bottom:6px;">
+      <div><label class="lbl">氏名</label>
+        <input class="inp" id="ew-name" placeholder="氏名">
+      </div>
+      <div><label class="lbl">読み仮名</label>
+        <input class="inp" id="ew-yomi" placeholder="例）はまもと">
+      </div>
+    </div>
+    <div class="fg" style="margin-bottom:12px;"><label class="lbl">電話番号</label>
+      <input type="tel" class="inp" id="ew-tel" placeholder="090-XXXX-XXXX">
+    </div>
+    <button class="btn btn-a" onclick="saveEditWorker()" style="margin-bottom:8px;">保存する</button>
+    <button class="btn btn-b" onclick="document.getElementById('modal-editworker').classList.remove('on')">閉じる</button>
+  </div>
+</div>
+
+<!-- 担当者編集モーダル -->
+
+<div class="overlay" id="modal-editcontact" onclick="closeOverlay('modal-editcontact',event)">
+  <div class="sheet">
+    <div class="sheet-handle"></div>
+    <div class="sheet-title" id="editcontact-title">✏️ 担当者を編集</div>
+    <input type="hidden" id="econ-clientid">
+    <input type="hidden" id="econ-origname">
+    <div class="row2" style="margin-bottom:6px;">
+      <div><label class="lbl">担当者名</label>
+        <input class="inp" id="econ-name" placeholder="担当者名">
+      </div>
+      <div><label class="lbl">読み仮名</label>
+        <input class="inp" id="econ-yomi" placeholder="例）たなか">
+      </div>
+    </div>
+    <div class="fg" style="margin-bottom:12px;"><label class="lbl">電話番号</label>
+      <input type="tel" class="inp" id="econ-tel" placeholder="080-XXXX-XXXX">
+    </div>
+    <button class="btn btn-a" onclick="saveEditContact()" style="margin-bottom:8px;">保存する</button>
+    <button class="btn btn-b" onclick="document.getElementById('modal-editcontact').classList.remove('on')">閉じる</button>
+  </div>
+</div>
+
+<!-- 取引先編集モーダル -->
+
+<div class="overlay" id="modal-editclient" onclick="closeOverlay('modal-editclient',event)">
+  <div class="sheet">
+    <div class="sheet-handle"></div>
+    <div class="sheet-title">✏️ 取引先を編集</div>
+    <input type="hidden" id="ec-id">
+    <div class="fg"><label class="lbl">会社名</label>
+      <input class="inp" id="ec-name" placeholder="会社名">
+    </div>
+    <div class="fg"><label class="lbl">読み仮名</label>
+      <input class="inp" id="ec-yomi" placeholder="例）あどゔぁん">
+    </div>
+    <div class="fg"><label class="lbl">よく使う業務内容（カンマ区切り）</label>
+      <input class="inp" id="ec-tasks" placeholder="例）資材搬入,養生作業">
+    </div>
+    <button class="btn btn-a" onclick="saveEditClient()" style="margin-bottom:8px;">保存する</button>
+    <button class="btn btn-b" onclick="document.getElementById('modal-editclient').classList.remove('on')">閉じる</button>
+  </div>
+</div>
+
+<!-- 現場名テンプレ編集モーダル -->
+
+<div class="overlay" id="modal-editsite" onclick="closeOverlay('modal-editsite',event)">
+  <div class="sheet">
+    <div class="sheet-handle"></div>
+    <div class="sheet-title">✏️ 現場テンプレを編集</div>
+    <input type="hidden" id="es-origname">
+    <div class="fg"><label class="lbl">現場名</label>
+      <input class="inp" id="es-name" placeholder="例）リザンシーパーク">
+    </div>
+    <div class="fg"><label class="lbl">読み仮名</label>
+      <input class="inp" id="es-yomi" placeholder="例）りざん">
+    </div>
+    <div class="fg"><label class="lbl">住所</label>
+      <input class="inp" id="es-addr" placeholder="例）沖縄県恩納村恩納3111-1">
+    </div>
+    <button class="btn btn-a" onclick="saveEditSite()" style="margin-bottom:8px;">保存する</button>
+    <button class="btn btn-b" onclick="document.getElementById('modal-editsite').classList.remove('on')">閉じる</button>
+  </div>
+</div>
+
+<!-- 担当者追加モーダル -->
+
+<div class="overlay" id="modal-addcontact" onclick="closeOverlay('modal-addcontact',event)">
+  <div class="sheet">
+    <div class="sheet-handle"></div>
+    <div class="sheet-title" id="addcontact-title">担当者を追加</div>
+    <div class="row2" style="margin-bottom:10px;">
+      <div><label class="lbl">担当者名</label>
+<div class="suggest-wrap"><input class="inp" id="ac-name" placeholder="例）田中" oninput="suggest(this,'contact')" autocomplete="off"><div class="suggest-list" id="sg-ac-name" style="display:none;"></div></div>
+      </div>
+      <div><label class="lbl">電話番号</label>
+        <input type="tel" class="inp" id="ac-tel" placeholder="080-XXXX-XXXX">
+      </div>
+    </div>
+    <button class="btn btn-a" onclick="saveAddContact()" style="margin-bottom:8px;">追加する</button>
+    <button class="btn btn-b" onclick="document.getElementById('modal-addcontact').classList.remove('on')">閉じる</button>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ════════════ STATE ════════════
+const DEFAULTS = {
+  clients:[{id:1,name:'アドヴァン',contacts:[{name:'島袋',tel:'080-5881-7535'}],tasks:['資材搬入','養生作業']}],
+  workers:[{id:'w1',name:'濱元',tel:'090-0000-0001'},{id:'w2',name:'嘉数',tel:'090-0000-0002'}],
+  cars:['キャブバン','軽トラック','2tトラック','4tトラック','乗用車'],
+  tasks:['資材搬入','養生作業','資材搬出','清掃','機材搬入','機材搬出','吊り作業','1日作業予定'],
+  meets:['若狭の駐車場','那覇港'],
+  sites:[],
+  history:[],
+  nextId:10, nextWid:3
+};
+let S = {...DEFAULTS};
+try{const sv=localStorage.getItem('yuinavi4');if(sv)S={...DEFAULTS,...JSON.parse(sv)};}catch(e){}
+function persist(){try{localStorage.setItem('yuinavi4',JSON.stringify(S));}catch(e){}}
+
+function toast(msg,color){
+  const el=document.getElementById('toast');
+  el.style.background = color||'var(--green)';
+  el.style.color = color ? '#fff' : '#052e16';
+  el.textContent=msg; el.classList.add('on');
+  setTimeout(()=>el.classList.remove('on'),2400);
+}
+
+// 日付
+(function(){
+  const d=new Date(), days=['日','月','火','水','木','金','土'];
+  document.getElementById('hdr-date').textContent=`${d.getMonth()+1}/${d.getDate()}(${days[d.getDay()]})`;
+  document.getElementById('f-date').valueAsDate=d;
+})();
+
+// タブ切替
+function switchTab(id,btn){
+  document.querySelectorAll('.scr').forEach(s=>s.classList.remove('on'));
+  document.querySelectorAll('.tab').forEach(b=>b.classList.remove('on'));
+  document.getElementById('scr-'+id).classList.add('on');
+  btn.classList.add('on');
+  if(id==='history') renderHistory();
+  if(id==='master')  renderMaster();
+}
+
+// ════════════ 指示作成 ════════════
+
+// 集合場所テンプレ
+function buildMeetTemplates(){
+  const cont=document.getElementById('meet-templates');
+  cont.innerHTML='';
+  S.meets.forEach(m=>{
+    const el=document.createElement('button');
+    el.className='meet-pill';
+    el.textContent='📍 '+m;
+    el.onclick=()=>{ document.getElementById('f-meet').value=m; };
+    cont.appendChild(el);
+  });
+}
+
+// 取引先セレクト
+function initClientSel(){
+  const sel=document.getElementById('f-client');
+  const cur=sel.value;
+  sel.innerHTML='<option value="">選択してください</option>';
+  S.clients.forEach(c=>{
+    const o=document.createElement('option');
+    o.value=c.id; o.textContent=c.name; sel.appendChild(o);
+  });
+  if(cur) sel.value=cur;
+}
+
+function onClientChange(){
+  const id=parseInt(document.getElementById('f-client').value);
+  const client=S.clients.find(c=>c.id===id);
+  clearContactSel();
+  document.getElementById('contact-area').style.display='none';
+  document.getElementById('manual-contact').style.display='grid';
+  if(!client) return;
+  document.querySelectorAll('#work-pills .pi').forEach(cb=>{
+    cb.checked=client.tasks&&client.tasks.includes(cb.value);
+  });
+  const contacts=client.contacts||[];
+  if(contacts.length===0) return;
+  document.getElementById('contact-area').style.display='block';
+  document.getElementById('manual-contact').style.display='none';
+  const cont=document.getElementById('contact-list');
+  cont.innerHTML='';
+  contacts.forEach(c=>{
+    const el=document.createElement('div'); el.className='ccard';
+    el.innerHTML=`<div><div class="ccard-name">${c.name}</div><div class="ccard-tel">${c.tel||'電話番号未登録'}</div></div>
+      <button class="bsm bsm-a" onclick="selectContact('${esc(c.name)}','${esc(c.tel||'')}')">選択</button>`;
+    cont.appendChild(el);
+  });
+}
+
+function selectContact(name,tel){
+  document.getElementById('f-cname').value=name;
+  document.getElementById('f-ctel').value=tel;
+  document.getElementById('sc-name').textContent=name;
+  document.getElementById('sc-tel').textContent=tel||'電話番号未登録';
+  document.getElementById('contact-area').style.display='none';
+  document.getElementById('selected-contact').style.display='block';
+  document.getElementById('manual-contact').style.display='none';
+}
+
+function clearContactSel(){
+  document.getElementById('f-cname').value='';
+  document.getElementById('f-ctel').value='';
+  document.getElementById('selected-contact').style.display='none';
+  const id=parseInt(document.getElementById('f-client').value);
+  const client=S.clients.find(c=>c.id===id);
+  if((client?.contacts||[]).length>0){
+    document.getElementById('contact-area').style.display='block';
+    document.getElementById('manual-contact').style.display='none';
+  }else{
+    document.getElementById('contact-area').style.display='none';
+    document.getElementById('manual-contact').style.display='grid';
+  }
+}
+
+// 作業員
+let selW=[];
+function initWorkerSel(){
+  const sel=document.getElementById('worker-sel');
+  sel.innerHTML='<option value="">＋ 作業員を追加</option>';
+  S.workers.forEach(w=>{
+    const o=document.createElement('option');
+    o.value=w.id; o.textContent=w.name; sel.appendChild(o);
+  });
+}
+function addWorker(id){
+  if(!id) return;
+  if(!selW.includes(id)) selW.push(id);
+  document.getElementById('worker-sel').value='';
+  renderWorkerChips();
+}
+function removeWorker(id){
+  selW=selW.filter(x=>x!==id); renderWorkerChips();
+}
+function renderWorkerChips(){
+  const cont=document.getElementById('worker-chips');
+  cont.innerHTML='';
+  selW.forEach(id=>{
+    const w=S.workers.find(x=>x.id===id); if(!w) return;
+    const el=document.createElement('div'); el.className='chip';
+    el.innerHTML=`<span>${w.name}</span><span class="chip-x" onclick="removeWorker('${id}')">×</span>`;
+    cont.appendChild(el);
+  });
+  // 人数バッジ
+  const badge=document.getElementById('worker-count');
+  if(selW.length>0){
+    badge.textContent=selW.length+'名'; badge.style.display='inline-flex';
+  }else{
+    badge.style.display='none';
+  }
+}
+
+// ピル構築
+function buildCarPills(){
+  const g=document.getElementById('car-pills'); g.innerHTML='';
+  S.cars.forEach((c,i)=>{
+    const inp=document.createElement('input');
+    inp.type='radio'; inp.name='car'; inp.id='c'+i; inp.className='pi'; inp.value=c;
+    const lbl=document.createElement('label');
+    lbl.className='pl'; lbl.setAttribute('for','c'+i); lbl.textContent=c;
+    g.appendChild(inp); g.appendChild(lbl);
+  });
+}
+function buildWorkPills(){
+  const g=document.getElementById('work-pills'); g.innerHTML='';
+  S.tasks.forEach((t,i)=>{
+    const inp=document.createElement('input');
+    inp.type='checkbox'; inp.id='tw'+i; inp.className='pi'; inp.value=t;
+    const lbl=document.createElement('label');
+    lbl.className='pl'; lbl.setAttribute('for','tw'+i); lbl.textContent=t;
+    g.appendChild(inp); g.appendChild(lbl);
+  });
+}
+
+// フォームデータ収集
+function collectForm(){
+  const clientSel=document.getElementById('f-client');
+  const clientId=parseInt(clientSel.value)||null;
+  const clientName=clientId ? clientSel.options[clientSel.selectedIndex].text : '';
+  let car='';
+  document.querySelectorAll('input[name=car]').forEach(r=>{if(r.checked)car=r.value;});
+  const works=[];
+  document.querySelectorAll('#work-pills .pi:checked').forEach(cb=>works.push(cb.value));
+  const wNames=selW.map(id=>S.workers.find(w=>w.id===id)?.name).filter(Boolean);
+  const dateV=document.getElementById('f-date').value;
+  let dateStr='';
+  if(dateV){
+    const d=new Date(dateV+'T00:00:00');
+    const days=['日','月','火','水','木','金','土'];
+    dateStr=`${d.getMonth()+1}/${d.getDate()}(${days[d.getDay()]})`;
+  }
+  return {
+    site:   document.getElementById('f-site').value.trim(),
+    addr:   document.getElementById('f-addr').value.trim(),
+    date:   dateV, dateStr,
+    time:   document.getElementById('f-time').value,
+    meet:   document.getElementById('f-meet').value.trim(),
+    gen:    document.getElementById('f-gen').value.trim(),
+    cname:  document.getElementById('f-cname').value.trim(),
+    ctel:   document.getElementById('f-ctel').value.trim(),
+    note:   document.getElementById('f-note').value.trim(),
+    clientId, clientName, car, works,
+    workerIds:[...selW], workerNames:[...wNames],
+  };
+}
+
+// LINE生成
+function generate(){
+  const f=collectForm();
+  const site=f.site||'（現場名未入力）';
+  let txt='';
+  if(f.meet&&f.car) txt+=`＊${f.meet}に${f.time}までにきて、${f.car}で現場に行ってください。\n`;
+  if(f.cname)       txt+=`＊現場に着いたら、担当の${f.cname}さんに連絡してください。\n`;
+  if(f.note)        txt+=`\n${f.note}\n`;
+  txt+=`\n作業日時...${f.dateStr} ${f.time}〜\n`;
+  txt+=`現場名...${site}\n`;
+  if(f.addr){
+    const mapUrl='https://maps.google.com/maps?q='+encodeURIComponent(f.addr);
+    txt+=`現場住所...${f.addr}\n${mapUrl}\n`;
+  }
+  if(f.gen)         txt+=`ゼネコン...${f.gen}\n`;
+  if(f.clientName)  txt+=`お客様...${f.clientName}\n`;
+  if(f.cname)       txt+=`ご担当...${f.cname}さん\n`;
+  if(f.ctel)        txt+=`${f.ctel}\n`;
+  if(f.workerNames.length) txt+=`\n作業人員...計${f.workerNames.length}名 ${f.workerNames.join('・')}\n`;
+  if(f.works.length)       txt+=`\n内容...${f.works.join('・')}\n`;
+  document.getElementById('preview-text').textContent=txt.trim();
+  document.getElementById('modal-line').classList.add('on');
+}
+
+function copyText(){
+  const txt=document.getElementById('preview-text').textContent;
+  navigator.clipboard.writeText(txt).then(()=>{
+    toast('✓ コピーしました！LINEに貼り付けてください');
+    document.getElementById('modal-line').classList.remove('on');
+  }).catch(()=>{
+    const ta=document.createElement('textarea'); ta.value=txt;
+    document.body.appendChild(ta); ta.select(); document.execCommand('copy');
+    document.body.removeChild(ta);
+    toast('✓ コピーしました！');
+    document.getElementById('modal-line').classList.remove('on');
+  });
+}
+
+function openMap(){
+  const addr=document.getElementById('f-addr').value.trim();
+  if(!addr){toast('⚠ 住所を入力してください','#f59e0b');return;}
+  window.open('https://maps.google.com/maps?q='+encodeURIComponent(addr),'_blank');
+}
+
+function closeOverlay(id,e){
+  if(e.target===document.getElementById(id))
+    document.getElementById(id).classList.remove('on');
+}
+
+// ════════ 現場履歴保存 ════════
+function saveHistory(){
+  const f=collectForm();
+  if(!f.site){toast('⚠ 現場名を入力してください','#f59e0b');return;}
+  const entry={
+    id: 'e'+(S.nextId++),
+    savedAt: new Date().toISOString(),
+    date:f.date, dateStr:f.dateStr, time:f.time,
+    meet:f.meet, gen:f.gen,
+    clientId:f.clientId, clientName:f.clientName,
+    cname:f.cname, ctel:f.ctel,
+    car:f.car,
+    workerIds:f.workerIds, workerNames:f.workerNames,
+    works:f.works, note:f.note,
+  };
+  // 同じ現場名があればそこに追加、なければ新規ファイル作成
+  let siteFile = S.history.find(h=>h.site===f.site);
+  if(siteFile){
+    siteFile.entries.unshift(entry);
+    siteFile.addr = f.addr || siteFile.addr; // 住所も更新
+  } else {
+    S.history.unshift({
+      id: 'h'+(S.nextId++),
+      site: f.site, addr: f.addr,
+      entries: [entry],
+    });
+  }
+  persist();
+  toast('✓ 「'+f.site+'」の履歴に保存しました');
+}
+
+// ════════ 履歴表示 ════════
+function renderHistory(){
+  const cont=document.getElementById('history-list');
+  if(S.history.length===0){
+    cont.innerHTML=`<div class="empty"><div class="empty-icon">📁</div><p>履歴がまだありません<br>指示作成後に「履歴に保存」してください</p></div>`;
+    return;
+  }
+  cont.innerHTML='';
+  S.history.forEach(siteFile=>{
+    const el=document.createElement('div');
+    el.className='site-file-card';
+    el.style.cssText='background:var(--s1);border:1px solid var(--border);border-radius:13px;margin-bottom:10px;overflow:hidden;';
+    const count=siteFile.entries.length;
+    const latest=siteFile.entries[0];
+    const latestDate=latest?latest.dateStr||latest.date||'':'';
+    el.innerHTML=`
+      <div class="site-file-header" onclick="toggleSiteFile('${siteFile.id}')"
+        style="display:flex;align-items:center;justify-content:space-between;padding:13px 14px;cursor:pointer;">
+        <div style="display:flex;align-items:center;gap:10px;">
+          <div style="width:36px;height:36px;background:rgba(240,180,41,.15);border:1px solid rgba(240,180,41,.3);
+            border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;">📁</div>
+          <div>
+            <div style="font-size:15px;font-weight:700;">${siteFile.site}</div>
+            <div style="font-size:11px;color:var(--t2);margin-top:2px;">${count}件の記録${latestDate?' · 最終: '+latestDate:''}</div>
+          </div>
+        </div>
+        <div style="display:flex;align-items:center;gap:8px;">
+          <span style="font-size:11px;color:var(--a);font-weight:700;background:rgba(240,180,41,.12);
+            border:1px solid rgba(240,180,41,.25);border-radius:20px;padding:2px 9px;">${count}件</span>
+          <span id="arrow-${siteFile.id}" style="color:var(--t2);font-size:13px;transition:transform .2s;">▼</span>
+        </div>
+      </div>
+      <div id="entries-${siteFile.id}" style="display:none;border-top:1px solid var(--border);">
+        <div style="padding:10px 14px 4px;">
+          ${siteFile.addr?`<div style="font-size:11px;color:var(--a2);margin-bottom:8px;cursor:pointer;"
+            onclick="window.open('https://maps.google.com/maps?q='+encodeURIComponent('${esc(siteFile.addr)}'),'_blank')">📍 ${siteFile.addr}</div>`:''}
+          ${siteFile.entries.map((e,i)=>buildEntryHTML(siteFile.id, e, i)).join('')}
+        </div>
+        <div style="padding:6px 14px 12px;display:flex;gap:6px;flex-wrap:wrap;border-top:1px solid var(--border);margin-top:6px;">
+          <button class="bsm bsm-r" onclick="deleteSiteFile('${siteFile.id}')">📁 現場ごと削除</button>
+        </div>
+      </div>`;
+    cont.appendChild(el);
+  });
+}
+
+function buildEntryHTML(siteId, e, i){
+  return `<div style="border:1px solid var(--border);border-radius:10px;padding:10px 12px;margin-bottom:8px;background:var(--s2);">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
+      <div style="font-family:'IBM Plex Mono',monospace;font-size:12px;font-weight:600;color:var(--a);">${e.dateStr||e.date||'日付未定'} ${e.time||''}</div>
+      <div style="display:flex;gap:5px;">
+        <button class="bsm bsm-p" onclick="reuse('${siteId}','${e.id}')" style="padding:4px 9px;font-size:11px;">♻️ 再利用</button>
+        <button class="bsm bsm-r" onclick="deleteEntry('${siteId}','${e.id}')" style="padding:4px 9px;font-size:11px;">削除</button>
+      </div>
+    </div>
+    ${e.workerNames&&e.workerNames.length?`<div style="font-size:12px;color:var(--t2);margin-bottom:3px;">👷 <span style="color:var(--t1);">${e.workerNames.length}名 ${e.workerNames.join('・')}</span></div>`:''}
+    ${e.works&&e.works.length?`<div style="font-size:12px;color:var(--t2);margin-bottom:3px;">🔧 <span style="color:var(--t1);">${e.works.join('・')}</span></div>`:''}
+    ${e.clientName?`<div style="font-size:12px;color:var(--t2);">🏢 <span style="color:var(--t1);">${e.clientName}${e.cname?' / '+e.cname:''}</span></div>`:''}
+    ${e.car?`<div style="font-size:12px;color:var(--t2);">🚗 <span style="color:var(--t1);">${e.car}</span></div>`:''}
+    ${e.note?`<div style="font-size:12px;color:var(--t2);margin-top:3px;white-space:pre-wrap;">${e.note}</div>`:''}
+  </div>`;
+}
+
+function toggleSiteFile(id){
+  const entries=document.getElementById('entries-'+id);
+  const arrow=document.getElementById('arrow-'+id);
+  const isOpen=entries.style.display!=='none';
+  entries.style.display=isOpen?'none':'block';
+  arrow.style.transform=isOpen?'':'rotate(180deg)';
+}
+
+function deleteSiteFile(id){
+  const sf=S.history.find(h=>h.id===id);
+  confirmDelete(`「${sf?.site||'この現場'}」の履歴をすべて削除します。`, ()=>{
+    S.history=S.history.filter(h=>h.id!==id);
+    persist(); renderHistory(); toast('削除しました');
+  });
+}
+
+function deleteEntry(siteId, entryId){
+  const sf=S.history.find(h=>h.id===siteId); if(!sf) return;
+  const e=sf.entries.find(x=>x.id===entryId);
+  confirmDelete(`${sf.site} の ${e?.dateStr||'この記録'} を削除します。`, ()=>{
+    sf.entries=sf.entries.filter(e=>e.id!==entryId);
+    if(sf.entries.length===0) S.history=S.history.filter(h=>h.id!==siteId);
+    persist(); renderHistory(); toast('削除しました');
+  });
+}
+
+function reuse(siteId, entryId){
+  const sf=S.history.find(h=>h.id===siteId); if(!sf) return;
+  const e=sf.entries.find(x=>x.id===entryId); if(!e) return;
+  document.getElementById('f-site').value=sf.site||'';
+  document.getElementById('f-addr').value=sf.addr||'';
+  document.getElementById('f-date').value=e.date||'';
+  document.getElementById('f-time').value=e.time||'07:50';
+  document.getElementById('f-meet').value=e.meet||'';
+  document.getElementById('f-gen').value=e.gen||'';
+  document.getElementById('f-cname').value=e.cname||'';
+  document.getElementById('f-ctel').value=e.ctel||'';
+  document.getElementById('f-note').value=e.note||'';
+  if(e.clientId) document.getElementById('f-client').value=e.clientId;
+  onClientChange();
+  if(e.cname) selectContact(e.cname, e.ctel||'');
+  selW=(e.workerIds||[]).filter(id=>S.workers.find(w=>w.id===id));
+  renderWorkerChips();
+  document.querySelectorAll('#work-pills .pi').forEach(cb=>{
+    cb.checked=e.works&&e.works.includes(cb.value);
+  });
+  document.querySelectorAll('input[name=car]').forEach(r=>{r.checked=r.value===e.car;});
+  document.querySelectorAll('.scr').forEach(s=>s.classList.remove('on'));
+  document.querySelectorAll('.tab').forEach(b=>b.classList.remove('on'));
+  document.getElementById('scr-create').classList.add('on');
+  document.querySelectorAll('.tab')[0].classList.add('on');
+  toast('✓ フォームに読み込みました'); window.scrollTo(0,0);
+}
+// ════════ マスタ管理 ════════
+let _newP=[];
+function addPerson(){
+  const name=document.getElementById('m-pname').value.trim();
+  const yomi=document.getElementById('m-pyomi').value.trim();
+  const tel=document.getElementById('m-ptel').value.trim();
+  if(!name){toast('⚠ 担当者名を入力してください','#f59e0b');return;}
+  _newP.push({name,yomi,tel});
+  document.getElementById('m-pname').value='';
+  document.getElementById('m-pyomi').value='';
+  document.getElementById('m-ptel').value='';
+  renderNewP();
+}
+function renderNewP(){
+  const cont=document.getElementById('m-contacts-preview'); cont.innerHTML='';
+  _newP.forEach((p,i)=>{
+    const el=document.createElement('div'); el.className='ccard'; el.style.marginBottom='5px';
+    el.innerHTML=`<div><div class="ccard-name">${p.name}</div><div class="ccard-tel">${p.tel||''}</div></div>
+      <button class="bsm bsm-r" onclick="removeP(${i})">削除</button>`;
+    cont.appendChild(el);
+  });
+}
+function removeP(i){_newP.splice(i,1); renderNewP();}
+
+function saveClient(){
+  const name=document.getElementById('m-cname').value.trim();
+  const yomi=document.getElementById('m-cyomi').value.trim();
+  if(!name){toast('⚠ 会社名を入力してください','#f59e0b');return;}
+  const tasksRaw=document.getElementById('m-ctasks').value.trim();
+  const tasks=tasksRaw?tasksRaw.split(',').map(t=>t.trim()).filter(Boolean):[];
+  S.clients.push({id:S.nextId++,name,yomi,contacts:[..._newP],tasks});
+  _newP=[];
+  document.getElementById('m-cname').value='';
+  document.getElementById('m-cyomi').value='';
+  document.getElementById('m-ctasks').value='';
+  renderNewP(); persist(); initClientSel(); renderMaster();
+  toast(`✓ ${name} を登録しました`);
+}
+function deleteClient(id){
+  const cl=S.clients.find(c=>c.id===id);
+  confirmDelete(`「${cl?.name||'この取引先'}」を削除します。`, ()=>{
+    S.clients=S.clients.filter(c=>c.id!==id);
+    persist(); initClientSel(); renderMaster(); toast('削除しました');
+  });
+}
+
+function saveWorker(){
+  const name=document.getElementById('m-wname').value.trim();
+  const yomi=document.getElementById('m-wyomi').value.trim();
+  const tel=document.getElementById('m-wtel').value.trim();
+  if(!name){toast('⚠ 氏名を入力してください','#f59e0b');return;}
+  S.workers.push({id:'w'+(S.nextWid++),name,yomi,tel});
+  document.getElementById('m-wname').value='';
+  document.getElementById('m-wyomi').value='';
+  document.getElementById('m-wtel').value='';
+  persist(); initWorkerSel(); renderMaster(); toast(`✓ ${name} を登録しました`);
+}
+function deleteWorker(id){
+  const w=S.workers.find(x=>x.id===id);
+  confirmDelete(`「${w?.name||'この作業員'}」を削除します。`, ()=>{
+    S.workers=S.workers.filter(w=>w.id!==id);
+    selW=selW.filter(x=>x!==id);
+    persist(); initWorkerSel(); renderWorkerChips(); renderMaster(); toast('削除しました');
+  });
+}
+
+function saveSiteName(){
+  const name=document.getElementById('m-site').value.trim(); if(!name) return;
+  const yomi=document.getElementById('m-syomi').value.trim();
+  const addr=document.getElementById('m-site-addr').value.trim();
+  if(!S.sites) S.sites=[];
+  const existing = S.sites.findIndex(s=>(s.name||s)===name);
+  if(existing>=0) S.sites[existing]={name,yomi,addr};
+  else S.sites.push({name,yomi,addr});
+  document.getElementById('m-site').value='';
+  document.getElementById('m-syomi').value='';
+  document.getElementById('m-site-addr').value='';
+  persist(); buildSiteTemplates(); renderMaster(); toast('✓ '+name+' を追加しました');
+}
+function deleteSiteName(name){ confirmDelete(`「${name}」を現場名テンプレから削除します。`, ()=>{ S.sites=(S.sites||[]).filter(s=>(s.name||s)!==name); persist(); buildSiteTemplates(); renderMaster(); toast('削除しました'); }); }
+function buildSiteTemplates(){
+  const cont=document.getElementById('site-templates'); if(!cont) return;
+  cont.innerHTML='';
+  (S.sites||[]).forEach(s=>{
+    const name = s.name||s;
+    const addr = s.addr||'';
+    const el=document.createElement('button');
+    el.className='meet-pill';
+    el.textContent='🏗 '+name;
+    el.onclick=()=>{
+      document.getElementById('f-site').value=name;
+      if(addr) document.getElementById('f-addr').value=addr;
+    };
+    cont.appendChild(el);
+  });
+}
+
+function saveMeet(){
+  const v=document.getElementById('m-meet').value.trim(); if(!v) return;
+  if(!S.meets.includes(v)) S.meets.push(v);
+  document.getElementById('m-meet').value='';
+  persist(); buildMeetTemplates(); renderMaster(); toast(`✓ ${v} を追加しました`);
+}
+function deleteMeet(v){ confirmDelete(`「${v}」を集合場所テンプレから削除します。`, ()=>{ S.meets=S.meets.filter(m=>m!==v); persist(); buildMeetTemplates(); renderMaster(); toast('削除しました'); }); }
+
+function saveCar(){
+  const v=document.getElementById('m-car').value.trim(); if(!v) return;
+  if(!S.cars.includes(v)) S.cars.push(v);
+  document.getElementById('m-car').value='';
+  persist(); buildCarPills(); renderMaster(); toast(`✓ ${v} を追加しました`);
+}
+function deleteCar(v){ confirmDelete(`「${v}」を車種テンプレから削除します。`, ()=>{ S.cars=S.cars.filter(c=>c!==v); persist(); buildCarPills(); renderMaster(); toast('削除しました'); }); }
+
+function saveTask(){
+  const v=document.getElementById('m-task').value.trim(); if(!v) return;
+  if(!S.tasks.includes(v)) S.tasks.push(v);
+  document.getElementById('m-task').value='';
+  persist(); buildWorkPills(); renderMaster(); toast(`✓ ${v} を追加しました`);
+}
+function deleteTask(v){ confirmDelete(`「${v}」を業務内容テンプレから削除します。`, ()=>{ S.tasks=S.tasks.filter(t=>t!==v); persist(); buildWorkPills(); renderMaster(); toast('削除しました'); }); }
+
+function renderMaster(){
+  // 取引先
+  const cc=document.getElementById('client-master-list'); cc.innerHTML='';
+  if(S.clients.length===0){
+    cc.innerHTML='<div class="empty" style="padding:16px 0"><p>取引先が登録されていません</p></div>';
+  }else{
+    S.clients.forEach(c=>{
+      const el=document.createElement('div'); el.className='mitem';
+      const contacts=c.contacts||[];
+      el.innerHTML=`<div class="mitem-head">
+        <div class="mitem-name">${c.name}${c.yomi?`<span style="font-size:11px;color:var(--t2);font-weight:400;margin-left:6px;">${c.yomi}</span>`:''}</div>
+        <div style="display:flex;gap:5px;flex-wrap:wrap;">
+          <button class="bsm bsm-g" onclick="openAddContact(${c.id})" style="font-size:11px;padding:4px 9px;">＋ 担当者</button>
+          <button class="bsm bsm-g" onclick="openEditClient(${c.id})" style="font-size:11px;padding:4px 9px;">✏️ 編集</button>
+          <button class="bsm bsm-r" onclick="deleteClient(${c.id})">削除</button>
+        </div></div>
+        <div id="contacts-${c.id}">${contacts.map(p=>`<div class="mitem-sub" style="display:flex;align-items:center;justify-content:space-between;padding:2px 0;">
+          <span>👤 ${p.name}　${p.tel||''}</span>
+          <div style="display:flex;gap:4px;">
+            <button class="bsm bsm-g" onclick="openEditContact(${c.id},'${esc(p.name)}')" style="padding:2px 7px;font-size:11px;">✏️</button>
+            <button class="bsm bsm-r" onclick="deleteContact(${c.id},'${esc(p.name)}')" style="padding:2px 7px;font-size:11px;">削除</button>
+          </div>
+        </div>`).join('')||'<div class="mitem-sub" style="color:var(--t3)">担当者未登録</div>'}</div>
+        <div style="margin-top:5px;display:flex;flex-wrap:wrap;">${(c.tasks||[]).map(t=>`<span class="tag tag-b">${t}</span>`).join('')}</div>`;
+      cc.appendChild(el);
+    });
+  }
+  // 作業員
+  const wc=document.getElementById('worker-master-list'); wc.innerHTML='';
+  S.workers.forEach(w=>{
+    const el=document.createElement('div'); el.className='mitem'; el.style.marginTop='7px';
+    el.innerHTML=`<div class="mitem-head">
+      <div><div class="mitem-name">${w.name}${w.yomi?`<span style="font-size:11px;color:var(--t2);font-weight:400;margin-left:6px;">${w.yomi}</span>`:''}</div><div class="mitem-sub">${w.tel||'電話番号未登録'}</div></div>
+      <div style="display:flex;gap:5px;align-items:center;">
+        ${w.tel?`<a href="tel:${w.tel}" class="bsm bsm-g" style="text-decoration:none;">📞</a>`:''}
+        <button class="bsm bsm-g" onclick="openEditWorker('${w.id}')" style="font-size:11px;padding:4px 9px;">✏️</button>
+        <button class="bsm bsm-r" onclick="deleteWorker('${w.id}')">削除</button>
+      </div></div>`;
+    wc.appendChild(el);
+  });
+  // 現場名テンプレ
+  const sc2=document.getElementById('site-master-list'); if(sc2){ sc2.innerHTML='';
+  (S.sites||[]).forEach(s=>{
+    const name=s.name||s; const addr=s.addr||'';
+    const el=document.createElement('div');
+    el.style.cssText='background:var(--s2);border:1px solid var(--border);border-radius:10px;padding:9px 12px;margin-bottom:6px;display:flex;align-items:center;justify-content:space-between;gap:8px;';
+    el.innerHTML=`<div style="min-width:0;flex:1;"><div style="font-size:14px;font-weight:700;">🏗 ${name}</div>${addr?`<div style="font-size:11px;color:var(--a2);margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">📍 ${addr}</div>`:''}</div><div style="display:flex;gap:5px;flex-shrink:0;"><button class="bsm bsm-g" onclick="openEditSite('${esc(name)}')" style="font-size:11px;padding:4px 9px;">✏️</button><span class="chip-x" style="font-size:18px;" onclick="deleteSiteName('${esc(name)}')">×</span></div>`;
+    sc2.appendChild(el);
+  }); }
+  // 集合場所テンプレ
+  const mc=document.getElementById('meet-master-list'); mc.innerHTML='';
+  S.meets.forEach(m=>{
+    const el=document.createElement('div'); el.className='chip';
+    el.innerHTML=`<span>${m}</span><span class="chip-x" onclick="deleteMeet('${esc(m)}')">×</span>`;
+    mc.appendChild(el);
+  });
+  // 車種
+  const cc2=document.getElementById('car-master-list'); cc2.innerHTML='';
+  S.cars.forEach(c=>{
+    const el=document.createElement('div'); el.className='chip';
+    el.innerHTML=`<span>${c}</span><span class="chip-x" onclick="deleteCar('${esc(c)}')">×</span>`;
+    cc2.appendChild(el);
+  });
+  // 業務内容
+  const tc=document.getElementById('task-master-list'); tc.innerHTML='';
+  S.tasks.forEach(t=>{
+    const el=document.createElement('div'); el.className='chip';
+    el.innerHTML=`<span>${t}</span><span class="chip-x" onclick="deleteTask('${esc(t)}')">×</span>`;
+    tc.appendChild(el);
+  });
+}
+
+function esc(s){return String(s).replace(/'/g,"\\'")}
+
+
+
+// ════════ 担当者単独追加 ════════
+let _acClientId = null;
+function openAddContact(clientId){
+  _acClientId = clientId;
+  const cl = S.clients.find(c=>c.id===clientId);
+  document.getElementById('addcontact-title').textContent = `「${cl?.name}」に担当者を追加`;
+  document.getElementById('ac-name').value = '';
+  document.getElementById('ac-tel').value = '';
+  document.getElementById('modal-addcontact').classList.add('on');
+  setTimeout(()=>document.getElementById('ac-name').focus(), 300);
+}
+function saveAddContact(){
+  const name = document.getElementById('ac-name').value.trim();
+  const yomi = document.getElementById('ac-yomi').value.trim();
+  const tel  = document.getElementById('ac-tel').value.trim();
+  if(!name){ toast('⚠ 担当者名を入力してください','#f59e0b'); return; }
+  const cl = S.clients.find(c=>c.id===_acClientId); if(!cl) return;
+  if(!cl.contacts) cl.contacts = [];
+  cl.contacts.push({name, yomi, tel});
+  persist(); renderMaster(); initClientSel();
+  document.getElementById('modal-addcontact').classList.remove('on');
+  toast(`✓ ${name}さんを追加しました`);
+}
+function deleteContact(clientId, name){
+  confirmDelete(`「${name}」を担当者から削除します。`, ()=>{
+    const cl = S.clients.find(c=>c.id===clientId); if(!cl) return;
+    cl.contacts = (cl.contacts||[]).filter(p=>p.name!==name);
+    persist(); renderMaster(); toast('削除しました');
+  });
+}
+
+// ════════ 削除確認ダイアログ ════════
+let _confirmCallback = null;
+function confirmDelete(msg, callback){
+  document.getElementById('confirm-msg').textContent = msg;
+  document.getElementById('confirm-overlay').classList.add('on');
+  _confirmCallback = callback;
+}
+function confirmCancel(){
+  document.getElementById('confirm-overlay').classList.remove('on');
+  _confirmCallback = null;
+}
+document.getElementById('confirm-ok').onclick = function(){
+  document.getElementById('confirm-overlay').classList.remove('on');
+  if(_confirmCallback){ _confirmCallback(); _confirmCallback=null; }
+};
+
+
+// ════════ サジェスト ════════
+function suggest(input, type){
+  const val = input.value.trim();
+  const listId = 'sg-' + input.id;
+  const list = document.getElementById(listId);
+  if(!list) return;
+  if(!val){ list.style.display='none'; return; }
+
+  let items = []; // {name, yomi}
+  if(type === 'client'){
+    items = S.clients.map(c=>({name:c.name, yomi:c.yomi||''}));
+  } else if(type === 'contact'){
+    const seen = new Set();
+    S.clients.forEach(c=>(c.contacts||[]).forEach(p=>{
+      if(!seen.has(p.name)){ seen.add(p.name); items.push({name:p.name, yomi:p.yomi||''}); }
+    }));
+  }
+  const hits = items.filter(x=>matchYomi(val,x.name,x.yomi) && x.name!==val);
+  if(hits.length===0){ list.style.display='none'; return; }
+  list.innerHTML = '';
+  const safeVal = val.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');
+  hits.slice(0,6).forEach(x=>{
+    const item = document.createElement('div');
+    item.className = 'suggest-item';
+    const hi = x.name.replace(new RegExp(safeVal,'g'), `<b>${val}</b>`);
+    item.innerHTML = `${hi}${x.yomi?`<span style="font-size:11px;color:var(--t2);margin-left:6px;">${x.yomi}</span>`:''}`;
+    item.onmousedown = (e)=>{ e.preventDefault(); input.value=x.name; list.style.display='none'; };
+    list.appendChild(item);
+  });
+  list.style.display = 'block';
+}
+
+
+
+
+
+// ════════ 作業員編集 ════════
+function openEditWorker(id){
+  const w = S.workers.find(x=>x.id===id); if(!w) return;
+  document.getElementById('ew-id').value = id;
+  document.getElementById('ew-name').value = w.name||'';
+  document.getElementById('ew-yomi').value = w.yomi||'';
+  document.getElementById('ew-tel').value = w.tel||'';
+  document.getElementById('modal-editworker').classList.add('on');
+}
+function saveEditWorker(){
+  const id = document.getElementById('ew-id').value;
+  const name = document.getElementById('ew-name').value.trim();
+  const tel  = document.getElementById('ew-tel').value.trim();
+  if(!name){ toast('⚠ 氏名を入力してください','#f59e0b'); return; }
+  const w = S.workers.find(x=>x.id===id); if(!w) return;
+  w.name = name; w.yomi = document.getElementById('ew-yomi').value.trim(); w.tel = tel;
+  persist(); initWorkerSel(); renderWorkerChips(); renderMaster();
+  document.getElementById('modal-editworker').classList.remove('on');
+  toast('✓ 作業員情報を更新しました');
+}
+
+// ════════ 担当者編集 ════════
+function openEditContact(clientId, origname){
+  const cl = S.clients.find(c=>c.id===clientId); if(!cl) return;
+  const p = (cl.contacts||[]).find(x=>x.name===origname); if(!p) return;
+  document.getElementById('econ-clientid').value = clientId;
+  document.getElementById('econ-origname').value = origname;
+  document.getElementById('econ-name').value = p.name||'';
+  document.getElementById('econ-yomi').value = p.yomi||'';
+  document.getElementById('econ-tel').value = p.tel||'';
+  document.getElementById('editcontact-title').textContent = `✏️「${cl.name}」の担当者を編集`;
+  document.getElementById('modal-editcontact').classList.add('on');
+}
+function saveEditContact(){
+  const clientId = parseInt(document.getElementById('econ-clientid').value);
+  const origname = document.getElementById('econ-origname').value;
+  const name = document.getElementById('econ-name').value.trim();
+  const tel  = document.getElementById('econ-tel').value.trim();
+  if(!name){ toast('⚠ 担当者名を入力してください','#f59e0b'); return; }
+  const cl = S.clients.find(c=>c.id===clientId); if(!cl) return;
+  const p = (cl.contacts||[]).find(x=>x.name===origname); if(!p) return;
+  p.name = name; p.yomi = document.getElementById('econ-yomi').value.trim(); p.tel = tel;
+  persist(); renderMaster(); initClientSel();
+  document.getElementById('modal-editcontact').classList.remove('on');
+  toast('✓ 担当者情報を更新しました');
+}
+
+// ════════ 取引先編集 ════════
+function openEditClient(id){
+  const cl = S.clients.find(c=>c.id===id); if(!cl) return;
+  document.getElementById('ec-id').value = id;
+  document.getElementById('ec-name').value = cl.name||'';
+  document.getElementById('ec-yomi').value = cl.yomi||'';
+  document.getElementById('ec-tasks').value = (cl.tasks||[]).join(',');
+  document.getElementById('modal-editclient').classList.add('on');
+}
+function saveEditClient(){
+  const id = parseInt(document.getElementById('ec-id').value);
+  const name = document.getElementById('ec-name').value.trim();
+  if(!name){ toast('⚠ 会社名を入力してください','#f59e0b'); return; }
+  const tasksRaw = document.getElementById('ec-tasks').value.trim();
+  const tasks = tasksRaw ? tasksRaw.split(',').map(t=>t.trim()).filter(Boolean) : [];
+  const cl = S.clients.find(c=>c.id===id); if(!cl) return;
+  cl.name = name;
+  cl.yomi = document.getElementById('ec-yomi').value.trim();
+  cl.tasks = tasks;
+  persist(); renderMaster(); initClientSel();
+  document.getElementById('modal-editclient').classList.remove('on');
+  toast('✓ 取引先を更新しました');
+}
+
+// ════════ 現場名テンプレ編集 ════════
+function openEditSite(origname){
+  const s = (S.sites||[]).find(x=>(x.name||x)===origname); if(!s) return;
+  document.getElementById('es-origname').value = origname;
+  document.getElementById('es-name').value = s.name||s;
+  document.getElementById('es-yomi').value = s.yomi||'';
+  document.getElementById('es-addr').value = s.addr||'';
+  document.getElementById('modal-editsite').classList.add('on');
+}
+function saveEditSite(){
+  const origname = document.getElementById('es-origname').value;
+  const name = document.getElementById('es-name').value.trim();
+  const addr = document.getElementById('es-addr').value.trim();
+  if(!name){ toast('⚠ 現場名を入力してください','#f59e0b'); return; }
+  const idx = (S.sites||[]).findIndex(s=>(s.name||s)===origname);
+  const syomi = document.getElementById('es-yomi').value.trim();
+  if(idx>=0) S.sites[idx] = {name, yomi:syomi, addr};
+  persist(); buildSiteTemplates(); renderMaster();
+  document.getElementById('modal-editsite').classList.remove('on');
+  toast('✓ 現場テンプレを更新しました');
+}
+
+
+// ════════ 作業員検索追加 ════════
+function workerSearchInput(inp){
+  const val = inp.value.trim();
+  const dd = document.getElementById('worker-dropdown');
+  // 未選択作業員のみ候補に
+  const avail = S.workers.filter(w=>!selW.includes(w.id));
+  const hits = val
+    ? avail.filter(w=>matchYomi(val, w.name, w.yomi)||(w.tel&&w.tel.includes(val)))
+    : avail;
+  if(hits.length===0){
+    dd.innerHTML=`<div class="wsearch-empty">${val?'該当なし':'登録作業員なし'}</div>`;
+  } else {
+    dd.innerHTML='';
+    hits.forEach(w=>{
+      const item=document.createElement('div');
+      item.className='wsearch-item';
+      const safeVal = val.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');
+      const hi = val ? w.name.replace(new RegExp(safeVal,'g'),`<b>${val}</b>`) : w.name;
+      item.innerHTML=`<span>👷 </span><span>${hi}</span>${w.yomi?`<span style="font-size:11px;color:var(--t2);margin-left:4px;">${w.yomi}</span>`:''}
+        <span class="witem-tel">${w.tel||''}</span>`;
+      item.onmousedown=(e)=>{ e.preventDefault(); addWorker(w.id); inp.value=''; dd.classList.remove('on'); };
+      dd.appendChild(item);
+    });
+  }
+  dd.classList.add('on');
+}
+
+// フォーカスが外れたらドロップダウンを閉じる
+document.addEventListener('click',(e)=>{
+  const wrap=document.querySelector('.wsearch-wrap');
+  if(wrap&&!wrap.contains(e.target)){
+    document.getElementById('worker-dropdown').classList.remove('on');
+  }
+  // 既存のサジェストも閉じる
+  document.querySelectorAll('.suggest-list').forEach(l=>{
+    if(!l.previousElementSibling?.contains(e.target)) l.style.display='none';
+  });
+});
+
+
+// ════════ 読み仮名ユーティリティ ════════
+function toHira(str){
+  return (str||'').replace(/[ァ-ン]/g,s=>String.fromCharCode(s.charCodeAt(0)-0x60));
+}
+function toKata(str){
+  return (str||'').replace(/[ぁ-ん]/g,s=>String.fromCharCode(s.charCodeAt(0)+0x60));
+}
+// 検索: 入力値がname/yomiのどれかに部分一致
+function matchYomi(query, name, yomi){
+  if(!query) return true;
+  const q = query.trim();
+  const qH = toHira(q); const qK = toKata(q);
+  const targets = [name||'', yomi||'', toHira(yomi||''), toKata(yomi||'')];
+  return targets.some(t=>t.includes(q)||t.includes(qH)||t.includes(qK));
+}
+
+// ── INIT ──
+initClientSel(); initWorkerSel();
+buildCarPills(); buildWorkPills(); buildMeetTemplates(); buildSiteTemplates();
+</script>
+
+</body>
+</html>
