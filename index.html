@@ -1130,6 +1130,44 @@ function matchYomi(val, name, yomi){
 
 
 // ════════════ STATE ════════════
+
+// ════════════════════════════════════════
+// Google Apps Script 連携
+// ════════════════════════════════════════
+const GAS_URL = 'https://script.google.com/macros/s/AKfycbwFk9oCqTRzCeyxKPaCg_Umn5kJIAZbcQtn2ZVtH0mFBs98uBu4YHwSxJitH9Ke5e-s/exec'; // ← GASのウェブアプリURLをここに貼る
+
+async function gasSave(){
+  if(!GAS_URL) return;
+  try{
+    await fetch(GAS_URL, {
+      method:'POST',
+      body: JSON.stringify({action:'save', data: S}),
+    });
+  }catch(e){ console.warn('GAS save error', e); }
+}
+
+async function gasLoad(){
+  if(!GAS_URL) return false;
+  try{
+    const res = await fetch(GAS_URL+'?action=load');
+    if(!res.ok) return false;
+    const json = await res.json();
+    if(json && json.data){
+      S = {...DEFAULTS, ...json.data};
+      // workersはDEFAULTSより少なければDEFAULTS優先
+      if(!json.data.workers || json.data.workers.length < DEFAULTS.workers.length){
+        S.workers = DEFAULTS.workers;
+      }
+      localStorage.setItem('yuinavi5', JSON.stringify(S));
+      return true;
+    }
+  }catch(e){ console.warn('GAS load error', e); }
+  return false;
+}
+
+// GAS設定済みかチェック
+function gasConfigured(){ return !!GAS_URL; }
+
 const DEFAULTS = {
   clients:[{id:1,name:'アドヴァン',contacts:[{name:'島袋',tel:'080-5881-7535'}],tasks:['資材搬入','養生作業']}],
   workers:[
@@ -1167,7 +1205,7 @@ try{
     }
   }
 }catch(e){}
-function persist(){try{localStorage.setItem('yuinavi5',JSON.stringify(S));}catch(e){}}
+function persist(){try{localStorage.setItem('yuinavi5',JSON.stringify(S));}catch(e){} gasSave();}
 
 function toast(msg,color){
   const el=document.getElementById('toast');
@@ -2809,6 +2847,16 @@ document.addEventListener('DOMContentLoaded', function(){
   }
   if(S.lastWorkTime){
     document.getElementById('f-work-time').value = S.lastWorkTime;
+  }
+  // GAS設定済みなら同期（バックグラウンド）
+  if(gasConfigured()){
+    gasLoad().then(loaded=>{
+      if(loaded){
+        initWorkerSel(); initClientSel();
+        buildCarPills(); buildWorkPills(); buildMeetTemplates(); buildSiteTemplates();
+        renderMaster();
+      }
+    });
   }
 });
 
