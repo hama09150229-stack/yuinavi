@@ -1141,6 +1141,8 @@ async function gasSave(){
   try{
     await fetch(GAS_URL, {
       method:'POST',
+      mode:'no-cors',
+      headers:{'Content-Type':'text/plain'},
       body: JSON.stringify({action:'save', data: S}),
     });
   }catch(e){ console.warn('GAS save error', e); }
@@ -1149,12 +1151,14 @@ async function gasSave(){
 async function gasLoad(){
   if(!GAS_URL) return false;
   try{
-    const res = await fetch(GAS_URL+'?action=load');
+    const res = await fetch(GAS_URL+'?action=load', {
+      method:'GET',
+      mode:'cors',
+    });
     if(!res.ok) return false;
     const json = await res.json();
     if(json && json.data){
       S = {...DEFAULTS, ...json.data};
-      // workersはDEFAULTSより少なければDEFAULTS優先
       if(!json.data.workers || json.data.workers.length < DEFAULTS.workers.length){
         S.workers = DEFAULTS.workers;
       }
