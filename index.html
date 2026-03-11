@@ -2794,6 +2794,9 @@ function saveWorkerPage(){
   toast('✓ '+name+' を追加しました');
 }
 
+// ドラッグ並び替え用変数
+let _dragSrcIdx = null;
+
 function renderWorkerPage(){
   const list = document.getElementById('worker-page-list');
   if(!list) return;
@@ -2802,9 +2805,16 @@ function renderWorkerPage(){
     list.innerHTML = '<div class="empty" style="padding:16px 0"><p>まだ登録されていません</p></div>';
     return;
   }
-  list.innerHTML = workers.map((w,i) => `
-    <div class="mitem" style="display:flex;align-items:center;gap:8px;padding:10px 0;border-bottom:1px solid var(--border);">
-      <div style="width:24px;height:24px;background:var(--s3);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;color:var(--t2);flex-shrink:0;">${i+1}</div>
+  list.innerHTML = '';
+  workers.forEach((w,i)=>{
+    const div = document.createElement('div');
+    div.className = 'mitem';
+    div.setAttribute('data-id', w.id);
+    div.setAttribute('draggable', 'true');
+    div.style.cssText = 'display:flex;align-items:center;gap:8px;padding:10px 0;border-bottom:1px solid var(--border);transition:opacity .2s;cursor:grab;';
+    div.innerHTML = `
+      <div style="color:var(--t3);font-size:20px;padding:0 4px;touch-action:none;cursor:grab;">☰</div>
+      <div style="width:22px;height:22px;background:var(--s3);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;color:var(--t2);flex-shrink:0;">${i+1}</div>
       <div style="flex:1;">
         <div style="font-size:15px;font-weight:600;color:var(--t1);">${esc(w.name)}</div>
         ${w.yomi ? `<div style="font-size:12px;color:var(--t2);">${esc(w.yomi)}</div>` : ''}
@@ -2812,8 +2822,71 @@ function renderWorkerPage(){
       ${w.tel ? `<a href="tel:${esc(w.tel)}" style="color:var(--a2);font-size:13px;text-decoration:none;" onclick="event.stopPropagation()">📞 ${esc(w.tel)}</a>` : '<span style="font-size:12px;color:var(--t3);">電話なし</span>'}
       <button class="bsm" style="background:none;border:none;color:var(--t3);font-size:18px;padding:4px 8px;" onclick="editWorkerPage('${w.id}')">✏️</button>
       <button class="bsm" style="background:none;border:none;color:var(--red);font-size:18px;padding:4px 8px;" onclick="delWorkerPage('${w.id}','${esc(w.name)}')">🗑</button>
-    </div>
-  `).join('');
+    `;
+
+    // ── PC: drag & drop ──
+    div.addEventListener('dragstart', e=>{
+      _dragSrcIdx = i;
+      e.dataTransfer.effectAllowed = 'move';
+      setTimeout(()=>div.style.opacity='0.4', 0);
+    });
+    div.addEventListener('dragend', ()=>{ div.style.opacity='1'; });
+    div.addEventListener('dragover', e=>{ e.preventDefault(); e.dataTransfer.dropEffect='move'; });
+    div.addEventListener('drop', e=>{
+      e.preventDefault();
+      if(_dragSrcIdx === null || _dragSrcIdx === i) return;
+      workerReorder(_dragSrcIdx, i);
+    });
+
+    // ── モバイル: touch drag ──
+    let touchStartY = 0, touchSrcIdx = null, ghost = null;
+    const handle = div.querySelector('div[style*="cursor:grab"]');
+    (handle||div).addEventListener('touchstart', e=>{
+      if(e.target.closest('button') || e.target.closest('a')) return;
+      touchSrcIdx = i;
+      touchStartY = e.touches[0].clientY;
+      ghost = div.cloneNode(true);
+      ghost.style.cssText += 'position:fixed;left:0;right:0;z-index:9999;background:var(--s2);opacity:0.85;pointer-events:none;margin:0 12px;border-radius:8px;';
+      ghost.style.top = div.getBoundingClientRect().top + 'px';
+      document.body.appendChild(ghost);
+      div.style.opacity = '0.3';
+    }, {passive:true});
+    (handle||div).addEventListener('touchmove', e=>{
+      if(touchSrcIdx === null) return;
+      e.preventDefault();
+      const dy = e.touches[0].clientY - touchStartY;
+      if(ghost) ghost.style.top = (div.getBoundingClientRect().top + dy) + 'px';
+    }, {passive:false});
+    (handle||div).addEventListener('touchend', e=>{
+      if(touchSrcIdx === null) return;
+      if(ghost){ ghost.remove(); ghost=null; }
+      div.style.opacity = '1';
+      const touch = e.changedTouches[0];
+      const el = document.elementFromPoint(touch.clientX, touch.clientY);
+      const target = el ? el.closest('[data-id]') : null;
+      if(target && target !== div){
+        const items = [...list.querySelectorAll('[data-id]')];
+        const toIdx = items.indexOf(target);
+        if(toIdx >= 0) workerReorder(touchSrcIdx, toIdx);
+      } else {
+        div.style.opacity = '1';
+      }
+      touchSrcIdx = null;
+    }, {passive:true});
+
+    list.appendChild(div);
+  });
+}
+
+function workerReorder(fromIdx, toIdx){
+  const workers = S.workers.filter(w=>!w._tmp);
+  const tmps    = S.workers.filter(w=>w._tmp);
+  const moved = workers.splice(fromIdx, 1)[0];
+  workers.splice(toIdx, 0, moved);
+  S.workers = [...workers, ...tmps];
+  persist();
+  renderWorkerPage();
+  initWorkerSel();
 }
 
 function editWorkerPage(id){
