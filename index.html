@@ -192,12 +192,14 @@ padding:22px 20px;width:100%;max-width:320px;text-align:center}
 
 /* SUGGEST DROPDOWN */
 .suggest-wrap{position:relative}
-.suggest-list{position:absolute;top:100%;left:0;right:0;
-background:var(–s2);border:1px solid var(–a);border-radius:9px;
-z-index:100;overflow:hidden;margin-top:3px;
-box-shadow:0 8px 24px rgba(0,0,0,.4)}
+.suggest-list{position:fixed;
+background:var(–dropdown-bg, #1e2235);border:1.5px solid var(–a);border-radius:9px;
+z-index:9999;overflow:hidden;
+box-shadow:0 8px 32px rgba(0,0,0,.8);
+max-height:220px;overflow-y:auto;}
 .suggest-item{padding:10px 13px;font-size:14px;cursor:pointer;
-border-bottom:1px solid var(–border);transition:background .1s}
+border-bottom:1px solid rgba(58,63,92,.6);transition:background .1s;
+color:var(–t1);}
 .suggest-item:last-child{border-bottom:none}
 .suggest-item:active{background:rgba(240,180,41,.15)}
 .suggest-item b{color:var(–a)}
@@ -210,12 +212,12 @@ font-family:inherit;outline:none;transition:border-color .15s}
 .wsearch-inp:focus{border-color:var(–a)}
 .wsearch-icon{position:absolute;left:12px;top:50%;transform:translateY(-50%);
 font-size:15px;pointer-events:none;}
-.wsearch-dropdown{position:absolute;top:calc(100% + 4px);left:0;right:0;
-background:var(–s2);border:1px solid var(–a);border-radius:10px;
-z-index:100;overflow:hidden;max-height:220px;overflow-y:auto;
-box-shadow:0 8px 24px rgba(0,0,0,.4);display:none;}
+.wsearch-dropdown{position:fixed;
+background:var(–dropdown-bg, #1e2235);border:1.5px solid var(–a);border-radius:10px;
+z-index:9999;overflow:hidden;max-height:220px;overflow-y:auto;
+box-shadow:0 8px 32px rgba(0,0,0,.8);display:none;}
 .wsearch-dropdown.on{display:block}
-.wsearch-item{padding:11px 13px;font-size:14px;cursor:pointer;
+.wsearch-item{padding:11px 13px;font-size:14px;cursor:pointer;color:var(–t1);
 border-bottom:1px solid var(–border);display:flex;align-items:center;gap:8px;transition:background .1s}
 .wsearch-item:last-child{border-bottom:none}
 .wsearch-item:active{background:rgba(240,180,41,.15)}
@@ -576,6 +578,10 @@ opacity:0;transition:all .25s;z-index:400;white-space:nowrap;pointer-events:none
   <div class="card">
     <div class="sec">業務内容</div>
     <div class="pills" id="work-pills"></div>
+    <div style="display:flex;align-items:center;gap:8px;margin-top:10px;">
+      <span style="font-size:12px;color:var(--t2);white-space:nowrap;">その他</span>
+      <input class="inp" id="f-work-other" placeholder="自由入力" style="flex:1;margin:0;">
+    </div>
   </div>
 
   <div class="card">
@@ -591,6 +597,34 @@ opacity:0;transition:all .25s;z-index:400;white-space:nowrap;pointer-events:none
 <!-- ══════════ 現場履歴 ══════════ -->
 
 <div id="scr-history" class="scr">
+  <!-- 検索フィルター -->
+  <div style="background:var(--s1);border:1px solid var(--border);border-radius:13px;padding:11px 13px;margin-bottom:10px;">
+    <div style="font-size:10px;font-weight:700;color:var(--a);letter-spacing:.5px;margin-bottom:8px;">🔍 検索・絞り込み</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-bottom:7px;">
+      <div>
+        <div style="font-size:10px;color:var(--t2);margin-bottom:3px;">日付</div>
+        <input type="date" class="inp" id="h-search-date" oninput="renderHistory()" style="font-size:12px;padding:6px 8px;">
+      </div>
+      <div>
+        <div style="font-size:10px;color:var(--t2);margin-bottom:3px;">現場名</div>
+        <input class="inp" id="h-search-site" placeholder="キーワード" oninput="renderHistory()" style="font-size:12px;padding:6px 8px;">
+      </div>
+    </div>
+    <div>
+      <div style="font-size:10px;color:var(--t2);margin-bottom:3px;">取引先</div>
+      <div class="suggest-wrap">
+        <input class="inp" id="h-search-client" placeholder="会社名・読み仮名" autocomplete="off"
+          oninput="suggestHistoryClient(this);renderHistory()"
+          onfocus="suggestHistoryClient(this)"
+          onblur="setTimeout(()=>{ const el=document.getElementById('sg-h-search-client'); if(el) el.style.display='none'; },200)"
+          style="font-size:12px;padding:6px 8px;">
+        <div class="suggest-list" id="sg-h-search-client" style="display:none;"></div>
+      </div>
+    </div>
+    <div style="text-align:right;margin-top:6px;">
+      <button class="bsm" onclick="clearHistorySearch()" style="font-size:11px;color:var(--t2);background:none;border:none;padding:0;">✕ クリア</button>
+    </div>
+  </div>
   <div id="history-list"></div>
 </div>
 
@@ -1051,7 +1085,7 @@ function buildCarPills(){
   const g=document.getElementById('car-pills'); g.innerHTML='';
   S.cars.forEach((c,i)=>{
     const inp=document.createElement('input');
-    inp.type='checkbox'; inp.id='c'+i; inp.className='pi'; inp.value=c;
+    inp.type='radio'; inp.name='car-radio'; inp.id='c'+i; inp.className='pi'; inp.value=c;
     const lbl=document.createElement('label');
     lbl.className='pl'; lbl.setAttribute('for','c'+i); lbl.textContent=c;
     g.appendChild(inp); g.appendChild(lbl);
@@ -1074,11 +1108,12 @@ function collectForm(){
   const clientId=parseInt(clientSel.value)||null;
   const clientManual=document.getElementById('f-client-manual').value.trim();
   const clientName=clientId ? clientSel.options[clientSel.selectedIndex].text : clientManual;
-  const cars=[];
-  document.querySelectorAll('#car-pills .pi:checked').forEach(cb=>cars.push(cb.value));
-  const car=cars.join('・');
+  const carEl = document.querySelector('#car-pills .pi:checked');
+  const car = carEl ? carEl.value : '';
   const works=[];
   document.querySelectorAll('#work-pills .pi:checked').forEach(cb=>works.push(cb.value));
+  const workOther = document.getElementById('f-work-other')?.value.trim();
+  if(workOther) works.push(workOther);
   const wNames=selW.map(id=>S.workers.find(w=>w.id===id)?.name).filter(Boolean);
   const dateV=document.getElementById('f-date').value;
   let dateStr='';
@@ -1188,15 +1223,19 @@ function saveHistory(){
     workerIds:f.workerIds, workerNames:f.workerNames,
     works:f.works, note:f.note,
   };
-  // 同じ現場名があればそこに追加、なければ新規ファイル作成
-  let siteFile = S.history.find(h=>h.site===f.site);
+  // 同じ現場名＋同じ取引先のフォルダに追加、なければ新規作成
+  const clientKey = f.clientId || f.clientName || f.cname || '（取引先未入力）';
+  let siteFile = S.history.find(h=>h.site===f.site && (h.clientKey||'')===(clientKey+''));
   if(siteFile){
     siteFile.entries.unshift(entry);
-    siteFile.addr = f.addr || siteFile.addr; // 住所も更新
+    siteFile.addr = f.addr || siteFile.addr;
+    siteFile.clientName = f.clientName || siteFile.clientName;
   } else {
     S.history.unshift({
       id: 'h'+(S.nextId++),
       site: f.site, addr: f.addr,
+      clientKey: clientKey+'',
+      clientName: f.clientName || f.cname || '',
       entries: [entry],
     });
   }
@@ -1205,14 +1244,46 @@ function saveHistory(){
 }
 
 // ════════ 履歴表示 ════════
+function clearHistorySearch(){
+  ['h-search-date','h-search-site','h-search-client'].forEach(id=>{
+    const el=document.getElementById(id); if(el) el.value='';
+  });
+  const sg = document.getElementById('sg-h-search-client');
+  if(sg) sg.style.display='none';
+  renderHistory();
+}
+
 function renderHistory(){
   const cont=document.getElementById('history-list');
+  // 検索フィルター取得
+  const fDate   = (document.getElementById('h-search-date')?.value||'').trim();
+  const fSite   = (document.getElementById('h-search-site')?.value||'').trim().toLowerCase();
+  const fClient = (document.getElementById('h-search-client')?.value||'').trim().toLowerCase();
+
+  // フィルタリング
+  let filtered = S.history.filter(sf=>{
+    // 現場名フィルター
+    if(fSite && !sf.site.toLowerCase().includes(fSite)) return false;
+    // 取引先フィルター
+    if(fClient && !(sf.clientName||'').toLowerCase().includes(fClient)) return false;
+    // 日付フィルター：フォルダ内のエントリのどれかに一致すればOK
+    if(fDate){
+      const hasDate = sf.entries.some(e=>(e.date||'')=== fDate || (e.dateStr||'').includes(fDate));
+      if(!hasDate) return false;
+    }
+    return true;
+  });
+
   if(S.history.length===0){
     cont.innerHTML=`<div class="empty"><div class="empty-icon">📁</div><p>履歴がまだありません<br>指示作成後に「履歴に保存」してください</p></div>`;
     return;
   }
+  if(filtered.length===0){
+    cont.innerHTML=`<div class="empty"><div class="empty-icon">🔍</div><p>該当する履歴が見つかりません</p></div>`;
+    return;
+  }
   cont.innerHTML='';
-  S.history.forEach(siteFile=>{
+  filtered.forEach(siteFile=>{
     const el=document.createElement('div');
     el.className='site-file-card';
     el.style.cssText='background:var(--s1);border:1px solid var(--border);border-radius:13px;margin-bottom:10px;overflow:hidden;';
@@ -1227,6 +1298,7 @@ function renderHistory(){
             border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;">📁</div>
           <div>
             <div style="font-size:15px;font-weight:700;">${siteFile.site}</div>
+            ${siteFile.clientName?`<div style="font-size:11px;color:var(--a2);margin-top:1px;font-weight:600;">${siteFile.clientName}</div>`:''}
             <div style="font-size:11px;color:var(--t2);margin-top:2px;">${count}件の記録${latestDate?' · 最終: '+latestDate:''}</div>
           </div>
         </div>
@@ -1314,7 +1386,12 @@ function reuse(siteId, entryId){
   document.querySelectorAll('#work-pills .pi').forEach(cb=>{
     cb.checked=e.works&&e.works.includes(cb.value);
   });
-  document.querySelectorAll('#car-pills .pi').forEach(cb=>{cb.checked=e.car&&e.car.split('・').includes(cb.value);});
+  // テンプレにないworksをその他欄に復元
+  const knownTasks = S.tasks||[];
+  const otherWorks = (e.works||[]).filter(w=>!knownTasks.includes(w));
+  const woEl = document.getElementById('f-work-other');
+  if(woEl) woEl.value = otherWorks.join('、');
+  document.querySelectorAll('#car-pills .pi').forEach(cb=>{cb.checked=e.car&&e.car===cb.value;});
   document.querySelectorAll('.scr').forEach(s=>s.classList.remove('on'));
   document.querySelectorAll('.tab').forEach(b=>b.classList.remove('on'));
   document.getElementById('scr-create').classList.add('on');
@@ -1586,8 +1663,11 @@ function suggest(input, type){
     item.onmousedown = (e)=>{ e.preventDefault(); input.value=x.name; list.style.display='none'; };
     list.appendChild(item);
   });
+  // fixed表示のため入力欄の位置に合わせて配置
+  positionDropdown(input, list);
   list.style.display = 'block';
 }
+
 
 
 
@@ -1729,6 +1809,8 @@ function workerSearchInput(inp){
     };
     dd.appendChild(item);
   });
+  const wInp = document.getElementById('worker-search');
+  if(wInp) positionDropdown(wInp, dd);
   dd.classList.add('on');
 }
 
@@ -1838,6 +1920,7 @@ function suggestSite(inp){
     };
     list.appendChild(item);
   });
+  positionDropdown(inp, list);
   list.style.display='block';
 }
 
@@ -1858,6 +1941,7 @@ function suggestMeet(inp){
     item.onmousedown=(e)=>{ e.preventDefault(); document.getElementById('f-meet').value=m; list.style.display='none'; };
     list.appendChild(item);
   });
+  positionDropdown(inp, list);
   list.style.display='block';
 }
 
@@ -1894,6 +1978,7 @@ function onClientManualInput(inp){
     };
     list.appendChild(item);
   });
+  positionDropdown(inp, list);
   list.style.display='block';
 }
 
@@ -2102,6 +2187,8 @@ function applyTheme(t){
   r.setProperty('--s2',     shift(bg, step*17));
   r.setProperty('--s3',     shift(bg, step*26));
   r.setProperty('--border', shift(bg, step*36));
+  // ドロップダウン専用：s1より一段強調した背景色
+  r.setProperty('--dropdown-bg', shift(bg, step*13));
 
   // アクセント：bgと補色的にコントラストが出る色を自動選択
   const accentPairs = [
@@ -2273,6 +2360,9 @@ function onPhotoSelected(e){
     wrap.style.left = _floatX+'px';
     wrap.style.top  = _floatY+'px';
     wrap.style.display = 'block';
+    // ズームリセット
+    _floatScale = 1;
+    document.getElementById('float-photo').style.transform = 'scale(1)';
 
   };
   reader.readAsDataURL(file);
@@ -2284,8 +2374,20 @@ function closeFloatPhoto(){
 
 }
 
-// ドラッグ & ダブルタップ
+// ドラッグ & ダブルタップ & 2本指ズーム
+let _floatScale = 1;
+let _floatPinchLast = 0;
+
 function onFloatTouchStart(e){
+  if(e.touches.length === 2){
+    // 2本指ピンチ開始
+    _floatPinchLast = Math.hypot(
+      e.touches[0].clientX - e.touches[1].clientX,
+      e.touches[0].clientY - e.touches[1].clientY
+    );
+    _floatDragging = false;
+    return;
+  }
   const touch = e.touches[0];
   const wrap = document.getElementById('float-photo-wrap');
   const rect = wrap.getBoundingClientRect();
@@ -2305,13 +2407,27 @@ function onFloatTouchStart(e){
 }
 
 function onFloatTouchMove(e){
-  if(!_floatDragging) return;
   e.preventDefault();
+  if(e.touches.length === 2){
+    // 2本指ピンチズーム
+    const dist = Math.hypot(
+      e.touches[0].clientX - e.touches[1].clientX,
+      e.touches[0].clientY - e.touches[1].clientY
+    );
+    if(_floatPinchLast > 0){
+      _floatScale = Math.min(4, Math.max(0.5, _floatScale * (dist / _floatPinchLast)));
+      const img = document.getElementById('float-photo');
+      img.style.transform = `scale(${_floatScale})`;
+      img.style.transformOrigin = 'center center';
+    }
+    _floatPinchLast = dist;
+    return;
+  }
+  if(!_floatDragging) return;
   const touch = e.touches[0];
   const wrap = document.getElementById('float-photo-wrap');
   _floatX = touch.clientX - _floatOx;
   _floatY = touch.clientY - _floatOy;
-  // 画面内に収める
   const maxX = window.innerWidth  - wrap.offsetWidth;
   const maxY = window.innerHeight - wrap.offsetHeight;
   _floatX = Math.max(0, Math.min(_floatX, maxX));
@@ -2321,7 +2437,8 @@ function onFloatTouchMove(e){
 }
 
 function onFloatTouchEnd(e){
-  _floatDragging = false;
+  if(e.touches.length < 2) _floatPinchLast = 0;
+  if(e.touches.length === 0) _floatDragging = false;
 }
 
 // ════════ 写真ズームオーバーレイ（ピンチ対応）════════
@@ -2415,6 +2532,54 @@ function renderCtasksSuggest(){
 function syncWorkTime(val){
   const wt = document.getElementById('f-work-time');
   if(wt && !wt.value) wt.value = val;
+}
+
+// ドロップダウンをinput要素の直下に固定表示
+function positionDropdown(input, dropdown){
+  const rect = input.getBoundingClientRect();
+  dropdown.style.top   = (rect.bottom + 3) + 'px';
+  dropdown.style.left  = rect.left + 'px';
+  dropdown.style.width = rect.width + 'px';
+}
+
+// スクロール時にドロップダウンを閉じる
+document.addEventListener('scroll', ()=>{
+  document.querySelectorAll('.suggest-list').forEach(l=>l.style.display='none');
+  const dd = document.getElementById('worker-dropdown');
+  if(dd) dd.classList.remove('on');
+}, true);
+
+
+// 履歴検索：取引先サジェスト（読み仮名対応）
+function suggestHistoryClient(inp){
+  const val = inp.value.trim();
+  const list = document.getElementById('sg-h-search-client');
+  if(!list) return;
+
+  // S.clientsから候補を生成（読み仮名マッチ対応）
+  const hits = val
+    ? S.clients.filter(c => matchYomi(val, c.name, c.yomi||''))
+    : S.clients.slice(0, 8);
+
+  if(!hits.length){ list.style.display='none'; return; }
+
+  list.innerHTML = '';
+  const safeVal = val.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');
+  hits.slice(0,8).forEach(cl=>{
+    const item = document.createElement('div');
+    item.className = 'suggest-item';
+    const hi = val ? cl.name.replace(new RegExp(safeVal,'gi'), `<b>${val}</b>`) : cl.name;
+    item.innerHTML = `${hi}${cl.yomi ? `<span style="font-size:11px;color:var(--t2);margin-left:6px;">${cl.yomi}</span>` : ''}`;
+    item.onmousedown = (e)=>{
+      e.preventDefault();
+      inp.value = cl.name;
+      list.style.display = 'none';
+      renderHistory();
+    };
+    list.appendChild(item);
+  });
+  positionDropdown(inp, list);
+  list.style.display = 'block';
 }
 // ── INIT ──
 initClientSel(); initWorkerSel();
