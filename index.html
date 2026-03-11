@@ -428,6 +428,34 @@ display:flex;align-items:center;justify-content:center;
 </head>
 <body>
 
+<!-- ════ ロック画面 ════ -->
+
+<div id="lock-screen">
+  <div class="lock-logo">🔐</div>
+  <div class="lock-title">ゆいナビ</div>
+  <div class="lock-sub">パスワードを入力してください</div>
+  <div class="lock-dots" id="lock-dots">
+    <div class="lock-dot" id="ld0"></div>
+    <div class="lock-dot" id="ld1"></div>
+    <div class="lock-dot" id="ld2"></div>
+    <div class="lock-dot" id="ld3"></div>
+  </div>
+  <div class="lock-pad">
+    <button class="lock-key" ontouchend="event.preventDefault();lockKey('1')" onclick="lockKey('1')">1</button>
+    <button class="lock-key" ontouchend="event.preventDefault();lockKey('2')" onclick="lockKey('2')">2</button>
+    <button class="lock-key" ontouchend="event.preventDefault();lockKey('3')" onclick="lockKey('3')">3</button>
+    <button class="lock-key" ontouchend="event.preventDefault();lockKey('4')" onclick="lockKey('4')">4</button>
+    <button class="lock-key" ontouchend="event.preventDefault();lockKey('5')" onclick="lockKey('5')">5</button>
+    <button class="lock-key" ontouchend="event.preventDefault();lockKey('6')" onclick="lockKey('6')">6</button>
+    <button class="lock-key" ontouchend="event.preventDefault();lockKey('7')" onclick="lockKey('7')">7</button>
+    <button class="lock-key" ontouchend="event.preventDefault();lockKey('8')" onclick="lockKey('8')">8</button>
+    <button class="lock-key" ontouchend="event.preventDefault();lockKey('9')" onclick="lockKey('9')">9</button>
+    <button class="lock-key" ontouchend="event.preventDefault();lockKey('del')" onclick="lockKey('del')" style="font-size:16px;">⌫</button>
+    <button class="lock-key" ontouchend="event.preventDefault();lockKey('0')" onclick="lockKey('0')">0</button>
+    <div></div>
+  </div>
+</div>
+
 <!-- HEADER -->
 
 <div class="hdr">
@@ -1225,9 +1253,10 @@ function addWorker(id){
   if(!id) return;
   if(!selW.includes(id)){ selW.push(id); }
   renderWorkerChips();
+  updateWorkerBadge();
 }
 function removeWorker(id){
-  selW=selW.filter(x=>x!==id); renderWorkerChips();
+  selW=selW.filter(x=>x!==id); renderWorkerChips(); updateWorkerBadge();
 }
 function renderWorkerChips(){
   const cont=document.getElementById('worker-chips');
@@ -1295,7 +1324,6 @@ function collectForm(){
     date:   dateV, dateStr,
     time:   document.getElementById('f-time').value,
     workTime: document.getElementById('f-work-time')?.value || document.getElementById('f-time').value,
-    meetTime: document.getElementById('f-meet-time')?.value||'',
     meet:   (document.getElementById('f-meet-quick').value || document.getElementById('f-meet').value.trim()),
     gen:    document.getElementById('f-gen').value.trim(),
     cname:  document.getElementById('f-cname').value.trim(),
@@ -2280,6 +2308,11 @@ function onEqChange(id){
   }
 }
 
+
+function updateWorkerBadge(){
+  const badge = document.getElementById('worker-badge');
+  if(badge) badge.textContent = selW.length > 0 ? selW.length : '';
+}
 function addWorkerTmp(){
   const name = document.getElementById('worker-tmp').value.trim();
   if(!name) return;
