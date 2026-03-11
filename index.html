@@ -22,7 +22,7 @@
 }
 *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 body{overscroll-behavior:none;background:var(--bg);color:var(--t1);font-family:'Noto Sans JP',sans-serif;
-  width:100%;max-width:430px;margin:0 auto;min-height:100vh;overflow-x:hiddenpadding-bottom:env(safe-area-inset-bottom,0px);}
+  width:100%;max-width:430px;margin:0 auto;min-height:100vh;overflow-x:hidden;padding-bottom:env(safe-area-inset-bottom,0px);}
 
 /* HEADER */
 .hdr{background:var(–s1);border-bottom:1px solid var(–border);padding:11px 16px;
@@ -35,7 +35,7 @@ font-size:17px;font-weight:900;color:#0d0f14;flex-shrink:0}
 .hdr-date{font-family:‘IBM Plex Mono’,monospace;font-size:11px;color:var(–t2)}
 
 /* TABS */
-.tabs{display:grid;grid-template-columns:1fr 1fr 1fr;
+.tabs{display:grid;grid-template-columns:repeat(5,1fr);
 background:var(–s1);border-bottom:1px solid var(–border)}
 .tab{padding:10px 0;background:none;border:none;font-family:inherit;
 font-size:12px;font-weight:600;color:var(–t2);cursor:pointer;
@@ -367,7 +367,7 @@ display:flex;align-items:center;justify-content:center;
 cursor:pointer;z-index:401;
 }
 
-.toast{position:fixed;bottom:18px;left:50%;
+.toast, #toast{position:fixed;bottom:18px;left:50%;
 transform:translateX(-50%) translateY(14px);
 background:var(–green);color:#052e16;padding:8px 16px;
 border-radius:20px;font-size:13px;font-weight:700;
@@ -423,8 +423,8 @@ font-family:inherit;
 display:flex;align-items:center;justify-content:center;
 }
 .lock-key:active{background:var(–s3);transform:scale(.95);}
-</style>
 
+</style>
 </head>
 <body>
 
@@ -480,6 +480,7 @@ display:flex;align-items:center;justify-content:center;
   <button class="tab on"  onclick="switchTab('create',this)">✏️ 指示作成</button>
   <button class="tab"     onclick="switchTab('history',this)">📁 現場履歴</button>
   <button class="tab"     onclick="switchTab('clients',this)">📒 取引先</button>
+  <button class="tab"     onclick="switchTab('workers',this)">👷 作業員</button>
   <button class="tab"     onclick="switchTab('master',this)">⚙️ マスタ</button>
 </div>
 
@@ -730,6 +731,31 @@ display:flex;align-items:center;justify-content:center;
   </div>
 </div>
 
+<!-- 作業員管理ページ -->
+
+<div id="scr-workers" class="scr">
+  <div class="card">
+    <div class="sec">👷 作業員を追加</div>
+    <div class="row2" style="margin-bottom:8px;">
+      <div><label class="lbl">氏名</label>
+        <input class="inp" id="wp-wname" placeholder="">
+      </div>
+      <div><label class="lbl">読み仮名</label>
+        <input class="inp" id="wp-wyomi" placeholder="はまもと">
+      </div>
+    </div>
+    <div class="fg" style="margin-bottom:9px;"><label class="lbl">電話番号</label>
+      <input type="tel" class="inp" id="wp-wtel" placeholder="090-0000-0000">
+    </div>
+    <button class="btn btn-a" onclick="saveWorkerPage()" style="width:100%;">追加する</button>
+  </div>
+
+  <div class="card" style="margin-top:8px;">
+    <div class="sec">📋 作業員一覧</div>
+    <div id="worker-page-list"></div>
+  </div>
+</div>
+
 <div id="scr-master" class="scr">
 
   <!-- 取引先 -->
@@ -769,24 +795,9 @@ display:flex;align-items:center;justify-content:center;
 
   <!-- 作業員 -->
 
-  <div class="card">
-    <div class="sec">作業員を登録</div>
-    <div class="row2" style="margin-bottom:8px;">
-      <div><label class="lbl">氏名</label>
-        <input class="inp" id="m-wname" placeholder="">
-      </div>
-      <div><label class="lbl">読み仮名</label>
-        <input class="inp" id="m-wyomi" placeholder="">
-      </div>
-    </div>
-    <div class="fg" style="margin-bottom:9px;"><label class="lbl">電話番号</label>
-      <input type="tel" class="inp" id="m-wtel" placeholder="">
-    </div>
-    <button class="btn btn-a" onclick="saveWorker()">作業員を登録</button>
-    <div id="worker-master-list" style="margin-top:9px;"></div>
-  </div>
-
-  <div class="div"></div>
+```
+<div class="div"></div>
+```
 
   <!-- 現場名テンプレ -->
 
@@ -1025,24 +1036,21 @@ display:flex;align-items:center;justify-content:center;
 
 <!-- 写真ズームオーバーレイ -->
 
-<div id="photo-zoom-overlay" onclick="if(event.target===this)closePhotoZoom();">
-  <div id="photo-zoom-inner"
-    ontouchstart="zoomTouchStart(event)"
-    ontouchmove="zoomTouchMove(event)"
-    ontouchend="zoomTouchEnd(event)">
-    <img id="photo-zoom-img" src="">
-    <div id="photo-zoom-close" onclick="closePhotoZoom()" ontouchend="closePhotoZoom();event.stopPropagation();event.preventDefault();">✕</div>
-  </div>
+<!-- トースト通知 -->
+
+<div id="toast"></div>
+
+<!-- 写真ズームオーバーレイ -->
+
+<div id="photo-zoom-overlay"
+  onclick="if(event.target===this)closePhotoZoom()"
+  ontouchend="if(event.target===this)closePhotoZoom()">
+  <img id="photo-zoom-img" src="" alt="">
 </div>
-
-<div class="toast" id="toast"></div>
-
-<!-- 共通ドロップダウン（body直下・transformの影響を受けない） -->
 
 <div id="global-dropdown" onmousedown="event.preventDefault()" style="position:fixed;z-index:99999;display:none;background:var(--dropdown-bg,#1e2235);border:1.5px solid var(--a);border-radius:10px;box-shadow:0 8px 32px rgba(0,0,0,.8);max-height:280px;overflow-y:auto;min-width:200px;"></div>
 
-<script>
-// ════════ 共通ドロップダウン（body直下・transformの影響を受けない） ════════
+<script>// ════════ 共通ドロップダウン（body直下・transformの影響を受けない） ════════
 let _ddCurrentInput = null;
 
 function showDropdown(inp, items, onSelect){
@@ -1124,21 +1132,42 @@ function matchYomi(val, name, yomi){
 // ════════════ STATE ════════════
 const DEFAULTS = {
   clients:[{id:1,name:'アドヴァン',contacts:[{name:'島袋',tel:'080-5881-7535'}],tasks:['資材搬入','養生作業']}],
-  workers:[{id:'w1',name:'濱元',tel:'090-0000-0001'},{id:'w2',name:'嘉数',tel:'090-0000-0002'}],
+  workers:[
+    {id:'w1',name:'濱元',tel:'090-0000-0001'},
+    {id:'w2',name:'嘉数',tel:'090-0000-0002'},
+    {id:'w4',name:'渡嘉敷',tel:'080-1712-9796'},
+    {id:'w5',name:'伊藤',tel:'090-4070-7107'},
+    {id:'w7',name:'新城（真哉）',tel:'080-8580-7903'},
+    {id:'w8',name:'新城（寿明）',tel:'080-2741-0328'},
+    {id:'w9',name:'前川',tel:'090-6856-1332'},
+    {id:'w10',name:'城間',tel:'080-8359-5999'},
+    {id:'w12',name:'松本',tel:'090-5477-3135'},
+    {id:'w15',name:'山川',tel:'080-6485-5775'},
+  ],
   cars:['キャブバン','軽トラック','2tトラック','4tトラック','乗用車'],
   tasks:['資材搬入','養生作業','資材搬出','清掃','機材搬入','機材搬出','吊り作業','1日作業予定'],
   meets:['若狭の駐車場','那覇港'],
   sites:[],
   history:[],
-  nextId:10, nextWid:3,
+  nextId:10, nextWid:16,
   theme:null,
   lastTime:'07:50',
   lastWorkTime:'07:50',
   siteContactStats:{}
 };
 let S = {...DEFAULTS};
-try{const sv=localStorage.getItem('yuinavi4');if(sv)S={...DEFAULTS,...JSON.parse(sv)};}catch(e){}
-function persist(){try{localStorage.setItem('yuinavi4',JSON.stringify(S));}catch(e){}}
+try{
+  const sv=localStorage.getItem('yuinavi5');
+  if(sv){
+    const saved=JSON.parse(sv);
+    S={...DEFAULTS,...saved};
+    // workersはDEFAULTSの人数より少なければDEFAULTSを優先
+    if(!saved.workers || saved.workers.length < DEFAULTS.workers.length){
+      S.workers = DEFAULTS.workers;
+    }
+  }
+}catch(e){}
+function persist(){try{localStorage.setItem('yuinavi5',JSON.stringify(S));}catch(e){}}
 
 function toast(msg,color){
   const el=document.getElementById('toast');
@@ -1163,6 +1192,7 @@ function switchTab(id,btn){
   btn.classList.add('on');
   if(id==='history') renderHistory();
   if(id==='clients') renderClientsPage();
+  if(id==='workers') renderWorkerPage();
   if(id==='master'){  renderMaster(); setTimeout(renderCtasksSuggest,50); }
 }
 
@@ -1734,19 +1764,6 @@ function renderMaster(){
       cc.appendChild(el);
     });
   }
-  // 作業員
-  const wc=document.getElementById('worker-master-list'); wc.innerHTML='';
-  S.workers.forEach(w=>{
-    const el=document.createElement('div'); el.className='mitem'; el.style.marginTop='7px';
-    el.innerHTML=`<div class="mitem-head">
-      <div><div class="mitem-name">${w.name}${w.yomi?`<span style="font-size:11px;color:var(--t2);font-weight:400;margin-left:6px;">${w.yomi}</span>`:''}</div><div class="mitem-sub">${w.tel||'電話番号未登録'}</div></div>
-      <div style="display:flex;gap:5px;align-items:center;">
-        ${w.tel?`<a href="tel:${w.tel}" class="bsm bsm-g" style="text-decoration:none;">📞</a>`:''}
-        <button class="bsm bsm-g" onclick="openEditWorker('${w.id}')" style="font-size:11px;padding:4px 9px;">✏️</button>
-        <button class="bsm bsm-r" onclick="deleteWorker('${w.id}')">削除</button>
-      </div></div>`;
-    wc.appendChild(el);
-  });
   // 現場名テンプレ
   const sc2=document.getElementById('site-master-list'); if(sc2){ sc2.innerHTML='';
   (S.sites||[]).forEach(s=>{
@@ -2720,6 +2737,67 @@ function renderWorkerList(val){
   const inp = document.getElementById('worker-search');
   if(inp){ inp.value = val||''; workerSearchInput(inp); }
 }
+
+// ════ 作業員管理ページ ════
+function saveWorkerPage(){
+  const name = document.getElementById('wp-wname').value.trim();
+  const yomi = document.getElementById('wp-wyomi').value.trim();
+  const tel  = document.getElementById('wp-wtel').value.trim();
+  if(!name){ toast('⚠ 氏名を入力してください','#f59e0b'); return; }
+  S.workers.push({id:'w'+(S.nextWid++), name, yomi, tel});
+  document.getElementById('wp-wname').value = '';
+  document.getElementById('wp-wyomi').value = '';
+  document.getElementById('wp-wtel').value  = '';
+  persist(); initWorkerSel(); renderWorkerPage();
+  toast('✓ '+name+' を追加しました');
+}
+
+function renderWorkerPage(){
+  const list = document.getElementById('worker-page-list');
+  if(!list) return;
+  const workers = S.workers.filter(w=>!w._tmp);
+  if(!workers.length){
+    list.innerHTML = '<div class="empty" style="padding:16px 0"><p>まだ登録されていません</p></div>';
+    return;
+  }
+  list.innerHTML = workers.map((w,i) => `
+    <div class="mitem" style="display:flex;align-items:center;gap:8px;padding:10px 0;border-bottom:1px solid var(--border);">
+      <div style="width:24px;height:24px;background:var(--s3);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;color:var(--t2);flex-shrink:0;">${i+1}</div>
+      <div style="flex:1;">
+        <div style="font-size:15px;font-weight:600;color:var(--t1);">${esc(w.name)}</div>
+        ${w.yomi ? `<div style="font-size:12px;color:var(--t2);">${esc(w.yomi)}</div>` : ''}
+      </div>
+      ${w.tel ? `<a href="tel:${esc(w.tel)}" style="color:var(--a2);font-size:13px;text-decoration:none;" onclick="event.stopPropagation()">📞 ${esc(w.tel)}</a>` : '<span style="font-size:12px;color:var(--t3);">電話なし</span>'}
+      <button class="bsm" style="background:none;border:none;color:var(--t3);font-size:18px;padding:4px 8px;" onclick="editWorkerPage('${w.id}')">✏️</button>
+      <button class="bsm" style="background:none;border:none;color:var(--red);font-size:18px;padding:4px 8px;" onclick="delWorkerPage('${w.id}','${esc(w.name)}')">🗑</button>
+    </div>
+  `).join('');
+}
+
+function editWorkerPage(id){
+  const w = S.workers.find(x=>x.id===id);
+  if(!w) return;
+  const name = prompt('氏名', w.name);
+  if(name === null) return;
+  const yomi = prompt('読み仮名', w.yomi||'');
+  if(yomi === null) return;
+  const tel  = prompt('電話番号', w.tel||'');
+  if(tel === null) return;
+  w.name = name.trim() || w.name;
+  w.yomi = yomi.trim();
+  w.tel  = tel.trim();
+  persist(); initWorkerSel(); renderWorkerPage(); renderMaster();
+  toast('✓ 更新しました');
+}
+
+function delWorkerPage(id, name){
+  confirmDelete(name+' を削除しますか？', ()=>{
+    S.workers = S.workers.filter(w=>w.id!==id);
+    persist(); initWorkerSel(); renderWorkerPage(); renderMaster();
+    toast('✓ 削除しました');
+  });
+}
+
 // ── INIT ──
 document.addEventListener('DOMContentLoaded', function(){
   initClientSel(); initWorkerSel();
@@ -2733,6 +2811,7 @@ document.addEventListener('DOMContentLoaded', function(){
     document.getElementById('f-work-time').value = S.lastWorkTime;
   }
 });
+
 </script>
 
 </body>
