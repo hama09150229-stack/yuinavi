@@ -417,7 +417,7 @@ opacity:0;transition:all .25s;z-index:400;white-space:nowrap;pointer-events:none
         <span class="wsearch-icon">🔍</span>
         <input class="wsearch-inp" id="f-site" placeholder=""
           oninput="suggestSite(this)" onfocus="suggestSite(this)"
-          onblur="applySiteDefaults(this.value.trim());setTimeout(hideDropdown,500)" autocomplete="off">
+          onblur="applySiteDefaults(this.value.trim())" autocomplete="off">
         <div class="suggest-list" id="sg-f-site" style="display:none;"></div>
       </div>
     </div>
@@ -463,7 +463,7 @@ opacity:0;transition:all .25s;z-index:400;white-space:nowrap;pointer-events:none
     <span class="wsearch-icon">🔍</span>
     <input class="wsearch-inp" id="f-meet" placeholder=""
       oninput="suggestMeet(this)" onfocus="suggestMeet(this)"
-      onblur="setTimeout(hideDropdown,500)" autocomplete="off">
+      autocomplete="off">
     <div class="suggest-list" id="sg-f-meet" style="display:none;"></div>
   </div>
 </div>
@@ -509,7 +509,7 @@ opacity:0;transition:all .25s;z-index:400;white-space:nowrap;pointer-events:none
     </div>
     <div id="manual-contact" class="row2">
       <div class="fg"><label class="lbl">担当者名</label>
-        <div class="suggest-wrap"><input class="inp" id="f-cname" placeholder="" oninput="suggest(this,'contact')" onfocus="suggest(this,'contact')" onblur="setTimeout(hideDropdown,500)" autocomplete="off"><div class="suggest-list" id="sg-f-cname" style="display:none;"></div></div>
+        <div class="suggest-wrap"><input class="inp" id="f-cname" placeholder="" oninput="suggest(this,'contact')" onfocus="suggest(this,'contact')" autocomplete="off"><div class="suggest-list" id="sg-f-cname" style="display:none;"></div></div>
       </div>
       <div class="fg"><label class="lbl">電話番号</label>
         <input type="tel" class="inp" id="f-ctel" placeholder="">
@@ -619,14 +619,17 @@ opacity:0;transition:all .25s;z-index:400;white-space:nowrap;pointer-events:none
         <input class="inp" id="h-search-client" placeholder="会社名・読み仮名" autocomplete="off"
           oninput="suggestHistoryClient(this);renderHistory()"
           onfocus="suggestHistoryClient(this)"
-          onblur="setTimeout(hideDropdown,500)"
-          style="font-size:12px;padding:6px 8px;">
-        <div class="suggest-list" id="sg-h-search-client" style="display:none;"></div>
-      </div>
-    </div>
-    <div style="text-align:right;margin-top:6px;">
-      <button class="bsm" onclick="clearHistorySearch()" style="font-size:11px;color:var(--t2);background:none;border:none;padding:0;">✕ クリア</button>
-    </div>
+
+```
+      style="font-size:12px;padding:6px 8px;">
+    <div class="suggest-list" id="sg-h-search-client" style="display:none;"></div>
+  </div>
+</div>
+<div style="text-align:right;margin-top:6px;">
+  <button class="bsm" onclick="clearHistorySearch()" style="font-size:11px;color:var(--t2);background:none;border:none;padding:0;">✕ クリア</button>
+</div>
+```
+
   </div>
   <div id="history-list"></div>
 </div>
@@ -653,7 +656,7 @@ opacity:0;transition:all .25s;z-index:400;white-space:nowrap;pointer-events:none
     <div class="sec">取引先を登録</div>
     <div class="fg"><label class="lbl">会社名</label>
       <div class="suggest-wrap">
-        <input class="inp" id="m-cname" placeholder="" oninput="suggest(this,'client')" onfocus="suggest(this,'client')" onblur="setTimeout(hideDropdown,500)" autocomplete="off">
+        <input class="inp" id="m-cname" placeholder="" oninput="suggest(this,'client')" onfocus="suggest(this,'client')" autocomplete="off">
         <div class="suggest-list" id="sg-m-cname" style="display:none;"></div>
       </div>
     </div>
@@ -672,7 +675,7 @@ opacity:0;transition:all .25s;z-index:400;white-space:nowrap;pointer-events:none
     <div style="font-size:10px;color:var(--t2);font-weight:700;letter-spacing:.5px;margin-bottom:7px;">担当者（複数登録可）</div>
     <div id="m-contacts-preview" style="margin-bottom:7px;"></div>
     <div class="row2" style="margin-bottom:7px;">
-<div class="suggest-wrap"><input class="inp" id="m-pname" placeholder="" oninput="suggest(this,'contact')" onfocus="suggest(this,'contact')" onblur="setTimeout(hideDropdown,500)" autocomplete="off"><div class="suggest-list" id="sg-m-pname" style="display:none;"></div></div>
+<div class="suggest-wrap"><input class="inp" id="m-pname" placeholder="" oninput="suggest(this,'contact')" onfocus="suggest(this,'contact')" autocomplete="off"><div class="suggest-list" id="sg-m-pname" style="display:none;"></div></div>
       <input type="tel" class="inp" id="m-ptel" placeholder="電話番号">
     </div>
     <button class="bsm bsm-g" onclick="addPerson()" style="width:100%;justify-content:center;margin-bottom:9px;">＋ 担当者を追加</button>
@@ -906,7 +909,7 @@ opacity:0;transition:all .25s;z-index:400;white-space:nowrap;pointer-events:none
     <div class="sheet-title" id="addcontact-title">担当者を追加</div>
     <div class="row2" style="margin-bottom:10px;">
       <div><label class="lbl">担当者名</label>
-<div class="suggest-wrap"><input class="inp" id="ac-name" placeholder="" oninput="suggest(this,'contact')" onfocus="suggest(this,'contact')" onblur="setTimeout(hideDropdown,500)" autocomplete="off"><div class="suggest-list" id="sg-ac-name" style="display:none;"></div></div>
+<div class="suggest-wrap"><input class="inp" id="ac-name" placeholder="" oninput="suggest(this,'contact')" onfocus="suggest(this,'contact')" autocomplete="off"><div class="suggest-list" id="sg-ac-name" style="display:none;"></div></div>
       </div>
       <div><label class="lbl">電話番号</label>
         <input type="tel" class="inp" id="ac-tel" placeholder="">
@@ -946,7 +949,7 @@ opacity:0;transition:all .25s;z-index:400;white-space:nowrap;pointer-events:none
     ontouchmove="zoomTouchMove(event)"
     ontouchend="zoomTouchEnd(event)">
     <img id="photo-zoom-img" src="">
-    <div id="photo-zoom-close" onclick="closePhotoZoom()">✕</div>
+    <div id="photo-zoom-close" onclick="closePhotoZoom()" ontouchend="closePhotoZoom();event.stopPropagation();event.preventDefault();">✕</div>
   </div>
 </div>
 
@@ -954,7 +957,7 @@ opacity:0;transition:all .25s;z-index:400;white-space:nowrap;pointer-events:none
 
 <!-- 共通ドロップダウン（body直下・transformの影響を受けない） -->
 
-<div id="global-dropdown" style="position:fixed;z-index:99999;display:none;background:var(--dropdown-bg,#1e2235);border:1.5px solid var(--a);border-radius:10px;box-shadow:0 8px 32px rgba(0,0,0,.8);max-height:220px;overflow-y:auto;min-width:200px;"></div>
+<div id="global-dropdown" onmousedown="event.preventDefault()" style="position:fixed;z-index:99999;display:none;background:var(--dropdown-bg,#1e2235);border:1.5px solid var(--a);border-radius:10px;box-shadow:0 8px 32px rgba(0,0,0,.8);max-height:220px;overflow-y:auto;min-width:200px;"></div>
 
 <script>
 // ════════ 共通ドロップダウン（body直下・transformの影響を受けない） ════════
