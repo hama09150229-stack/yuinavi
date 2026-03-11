@@ -21,8 +21,8 @@
   --tag-color:#60c8f5;
 }
 *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
-body{background:var(--bg);color:var(--t1);font-family:'Noto Sans JP',sans-serif;
-  width:100%;max-width:430px;margin:0 auto;min-height:100vh;overflow-x:hidden}
+body{overscroll-behavior:none;background:var(--bg);color:var(--t1);font-family:'Noto Sans JP',sans-serif;
+  width:100%;max-width:430px;margin:0 auto;min-height:100vh;overflow-x:hiddenpadding-bottom:env(safe-area-inset-bottom,0px);}
 
 /* HEADER */
 .hdr{background:var(–s1);border-bottom:1px solid var(–border);padding:11px 16px;
@@ -57,7 +57,7 @@ text-transform:uppercase;margin-bottom:9px;display:flex;align-items:center;gap:5
 .fg{margin-bottom:11px}.fg:last-child{margin-bottom:0}
 .lbl{display:block;font-size:10px;color:var(–t2);font-weight:600;letter-spacing:.5px;margin-bottom:4px}
 .inp,.sel,.ta{width:100%;background:var(–s2);border:1px solid var(–border);
-border-radius:8px;padding:10px 12px;color:var(–t1);font-size:15px;
+border-radius:8px;padding:10px 12px;color:var(–t1);font-size:16px;
 font-family:inherit;outline:none;transition:border-color .15s;-webkit-appearance:none}
 .inp:focus,.sel:focus,.ta:focus{border-color:var(–a)}
 .sel{background-image:url(“data:image/svg+xml,%3Csvg xmlns=‘http://www.w3.org/2000/svg’ width=‘10’ height=‘6’%3E%3Cpath d=‘M0 0l5 6 5-6z’ fill=’%237c86a0’/%3E%3C/svg%3E”);
@@ -90,7 +90,7 @@ border:1px solid var(–border);border-radius:20px;padding:4px 10px;font-size:13
 
 /* BUTTONS */
 .btn{display:block;width:100%;padding:13px;border:none;border-radius:10px;
-font-size:15px;font-weight:700;font-family:inherit;cursor:pointer;transition:all .15s}
+font-size:16px;font-weight:700;font-family:inherit;cursor:pointer;transition:all .15s}
 .btn-a{background:var(–a);color:#0d0f14}
 .btn-a:active{transform:scale(.97);opacity:.9}
 .btn-b{background:var(–s2);color:var(–t1);border:1px solid var(–border)}
@@ -139,7 +139,7 @@ color:#0d0f14;cursor:pointer;font-family:inherit}
 padding:13px;margin-bottom:9px;cursor:pointer;transition:border-color .15s}
 .hitem:active{border-color:var(–a)}
 .hitem-top{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:7px}
-.hitem-name{font-size:15px;font-weight:700}
+.hitem-name{font-size:16px;font-weight:700}
 .hitem-date{font-family:‘IBM Plex Mono’,monospace;font-size:11px;color:var(–t2);
 background:var(–s2);border:1px solid var(–border);border-radius:6px;padding:2px 8px}
 .hitem-row{font-size:12px;color:var(–t2);margin-top:3px;display:flex;align-items:center;gap:5px}
@@ -186,7 +186,7 @@ z-index:300;align-items:center;justify-content:center;padding:20px}
 .confirm-overlay.on{display:flex}
 .confirm-box{background:var(–s1);border:1px solid var(–border);border-radius:16px;
 padding:22px 20px;width:100%;max-width:320px;text-align:center}
-.confirm-title{font-size:15px;font-weight:700;margin-bottom:6px}
+.confirm-title{font-size:16px;font-weight:700;margin-bottom:6px}
 .confirm-msg{font-size:13px;color:var(–t2);margin-bottom:20px;line-height:1.6}
 .confirm-btns{display:flex;gap:10px}
 .confirm-btns .btn{padding:11px}
@@ -208,11 +208,11 @@ color:var(–t1);}
 /* WORKER SEARCH */
 .wsearch-wrap{position:relative}
 .wsearch-inp{width:100%;background:var(–s2);border:1px solid var(–border);
-border-radius:8px;padding:10px 12px 10px 36px;color:var(–t1);font-size:15px;
+border-radius:8px;padding:10px 12px 10px 36px;color:var(–t1);font-size:16px;
 font-family:inherit;outline:none;transition:border-color .15s}
 .wsearch-inp:focus{border-color:var(–a)}
 .wsearch-icon{position:absolute;left:12px;top:50%;transform:translateY(-50%);
-font-size:15px;pointer-events:none;}
+font-size:16px;pointer-events:none;}
 .wsearch-dropdown{position:absolute;
 background:var(–dropdown-bg, #1e2235);border:1.5px solid var(–a);border-radius:10px;
 z-index:9999;overflow:hidden;max-height:220px;overflow-y:auto;
@@ -312,7 +312,7 @@ text-shadow:0 1px 3px rgba(0,0,0,.5);}
 .color-inp-wrap{display:flex;align-items:center;gap:6px;}
 .color-inp-wrap input[type=color]{width:36px;height:36px;border:none;border-radius:8px;
 background:none;cursor:pointer;padding:2px;}
-.color-inp-wrap .inp{font-size:12px;font-family:‘IBM Plex Mono’,monospace;flex:1;}
+.color-inp-wrap .inp{font-size:16px;font-family:‘Noto Sans JP’,sans-serif;flex:1;}
 
 /* ─── フローティング参照写真 ─── */
 #float-photo-wrap{
@@ -376,7 +376,7 @@ opacity:0;transition:all .25s;z-index:400;white-space:nowrap;pointer-events:none
 
 /* ════ ロック画面 ════ */
 #lock-screen{
-position:fixed;inset:0;background:#12141e;z-index:99998;
+position:fixed;inset:0;background:#12141e;z-index:99998;min-height:100dvh;
 display:flex;flex-direction:column;align-items:center;justify-content:center;
 gap:20px;
 }
@@ -468,7 +468,7 @@ display:flex;align-items:center;justify-content:center;
     <div id="float-photo-add" onclick="triggerPhotoUpload()"
       style="width:28px;height:28px;border-radius:50%;
       background:var(--s2);border:1.5px solid var(--border);
-      color:var(--t2);font-size:15px;
+      color:var(--t2);font-size:16px;
       display:flex;align-items:center;justify-content:center;
       cursor:pointer;flex-shrink:0;">📷</div>
   </div>
@@ -1099,14 +1099,7 @@ document.addEventListener('touchstart', (e)=>{
   if(dd && dd.style.display !== 'none' && !dd.contains(e.target) && e.target !== _ddCurrentInput){
     dd.style.display = 'none';
   }
-  // worker-dropdown
-  const ww2 = document.querySelector('.wsearch-wrap');
-  const wd2 = document.getElementById('worker-dropdown');
-  if(wd2 && wd2.classList.contains('on') && ww2 && !ww2.contains(e.target)){
-    wd2.classList.remove('on');
-    const winp2 = document.getElementById('worker-search');
-    if(winp2) winp2.value = '';
-  }
+
 }, {passive:true});
 
 document.addEventListener('scroll', hideDropdown, true);
@@ -1274,6 +1267,7 @@ function renderWorkerChips(){
     badge.style.display='none';
   }
   renderMiWorkerList();
+  updateWorkerBadge();
 }
 
 // ピル構築
@@ -1500,7 +1494,7 @@ function renderHistory(){
           <div style="width:36px;height:36px;background:rgba(240,180,41,.15);border:1px solid rgba(240,180,41,.3);
             border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;">📁</div>
           <div>
-            <div style="font-size:15px;font-weight:700;">${siteFile.site}</div>
+            <div style="font-size:16px;font-weight:700;">${siteFile.site}</div>
             ${siteFile.clientName?`<div style="font-size:11px;color:var(--a2);margin-top:1px;font-weight:600;">${siteFile.clientName}</div>`:''}
             <div style="font-size:11px;color:var(--t2);margin-top:2px;">${count}件の記録${latestDate?' · 最終: '+latestDate:''}</div>
           </div>
@@ -2024,39 +2018,41 @@ function onClientManualInput(inp){
 // ════════ 作業員検索（showDropdown経由） ════════
 function workerSearchInput(inp){
   const val = inp.value.trim();
-  const dd = document.getElementById('worker-dropdown');
-  if(!dd) return;
-
   const workers = S.workers.filter(w=>!w._tmp);
   const hits = val
     ? workers.filter(w=>matchYomi(val, w.name, w.yomi||'')||(w.tel&&w.tel.includes(val)))
     : workers;
 
   if(!hits.length){
-    dd.innerHTML = `<div style="padding:10px 13px;font-size:13px;color:var(--t3);">${val?'該当なし':'登録作業員なし'}</div>`;
-    dd.classList.add('on');
+    hideDropdown();
     return;
   }
 
   const safeVal = val ? val.replace(/[.*+?^${}()|\[\]\\]/g,'\$&') : '';
-  dd.innerHTML = hits.map(w=>{
-    const isSel = selW.includes(w.id);
-    const check = isSel
-      ? `<span style="width:18px;height:18px;background:var(--a);border-radius:4px;display:inline-flex;align-items:center;justify-content:center;font-size:11px;font-weight:900;color:#1a1c24;flex-shrink:0;">✓</span>`
-      : `<span style="width:18px;height:18px;background:var(--s3);border:2px solid var(--border);border-radius:4px;display:inline-flex;flex-shrink:0;"></span>`;
-    const hi = val ? w.name.replace(new RegExp(safeVal,'g'),`<b style="color:var(--a)">${val}</b>`) : w.name;
-    const bg = isSel ? 'background:rgba(240,180,41,.08);' : '';
-    return `<div class="wsearch-item" style="${bg}" onmousedown="event.preventDefault()" onclick="toggleWorker('${w.id}',this)">
-      <div style="display:flex;align-items:center;gap:8px;">
+  showDropdown(inp, hits.map(w=>({
+    w,
+    html: (()=>{
+      const isSel = selW.includes(w.id);
+      const check = isSel
+        ? `<span style="width:18px;height:18px;background:var(--a);border-radius:4px;display:inline-flex;align-items:center;justify-content:center;font-size:11px;font-weight:900;color:#1a1c24;flex-shrink:0;">✓</span>`
+        : `<span style="width:18px;height:18px;background:var(--s3);border:2px solid var(--border);border-radius:4px;display:inline-flex;flex-shrink:0;"></span>`;
+      const hi = val ? w.name.replace(new RegExp(safeVal,'g'),`<b style="color:var(--a)">${val}</b>`) : w.name;
+      const bg = isSel ? 'background:rgba(240,180,41,.1);' : '';
+      return `<div style="display:flex;align-items:center;gap:8px;${bg}padding:2px 0;">
         ${check}
         <span style="flex:1;">${hi}</span>
         ${w.yomi?`<span style="font-size:11px;color:var(--t2);">${w.yomi}</span>`:''}
         <span style="font-size:11px;color:var(--t2);margin-left:auto;">${w.tel||''}</span>
-      </div>
-    </div>`;
-  }).join('');
-  dd.classList.add('on');
+      </div>`;
+    })()
+  })), item => {
+    const isSel = selW.includes(item.w.id);
+    if(isSel) removeWorker(item.w.id); else addWorker(item.w.id);
+    // ドロップダウンを閉じずに再描画
+    setTimeout(()=>workerSearchInput(inp), 30);
+  });
 }
+
 
 function toggleWorker(id, el){
   const isSel = selW.includes(id);
@@ -2310,8 +2306,16 @@ function onEqChange(id){
 
 
 function updateWorkerBadge(){
-  const badge = document.getElementById('worker-badge');
-  if(badge) badge.textContent = selW.length > 0 ? selW.length : '';
+  // worker-countを使ってバッジ表示
+  const badge = document.getElementById('worker-count');
+  if(!badge) return;
+  if(selW.length > 0){
+    badge.textContent = selW.length + '人';
+    badge.style.display = 'inline';
+  } else {
+    badge.textContent = '';
+    badge.style.display = 'none';
+  }
 }
 function addWorkerTmp(){
   const name = document.getElementById('worker-tmp').value.trim();
@@ -2618,7 +2622,7 @@ function renderClientsPage(){
 
     card.innerHTML = `
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
-        <div style="font-size:15px;font-weight:700;color:var(--a);">${esc(cl.name)}</div>
+        <div style="font-size:16px;font-weight:700;color:var(--a);">${esc(cl.name)}</div>
         <span style="font-size:11px;color:var(--t2);">担当者 ${contacts.length}名</span>
       </div>
       ${contactsHTML}
@@ -2684,14 +2688,7 @@ document.addEventListener('click',(e)=>{
   if(dd && dd.style.display !== 'none' && !dd.contains(e.target) && e.target !== _ddCurrentInput){
     dd.style.display = 'none'; _ddCurrentInput = null;
   }
-  // worker-dropdown: wsearch-wrap外をクリックしたら閉じる
-  const ww = document.querySelector('.wsearch-wrap');
-  const wd = document.getElementById('worker-dropdown');
-  if(wd && wd.classList.contains('on') && ww && !ww.contains(e.target)){
-    wd.classList.remove('on');
-    const winp = document.getElementById('worker-search');
-    if(winp) winp.value = '';
-  }
+
 });
 
 function setMeetQuick(name, idx){
